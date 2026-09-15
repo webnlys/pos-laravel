@@ -1,0 +1,54 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+body {
+    background: #f4f6f9;
+    min-height: 100vh;
+}
+
+.sidebar {
+    min-height: 100vh;
+    background: #1f2937;
+    color: #fff;
+    width: 240px;
+}
+
+.sidebar a {
+    color: #d1d5db;
+    text-decoration: none;
+    display: block;
+    padding: 0.55rem 1rem;
+    border-radius: 0.4rem;
+}
+
+.sidebar a.router-link-active,
+.sidebar a:hover {
+    background: #374151;
+    color: #fff;
+}
+
+.page-card {
+    background: #fff;
+    border-radius: 0.6rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.report-sidebar {
+    background: #fff;
+    border-right: 1px solid #e5e7eb;
+    min-height: 70vh;
+}
+
+.report-table th,
+.report-table td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .report-print {
+        background: #fff;
+    }
+}
