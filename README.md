@@ -1,6 +1,6 @@
 # Simple POS
 
-Laravel 11 + Vue 3 SPA point-of-sale. The Vue app talks to Laravel over REST (`/api`) with Sanctum cookie auth. Database is PostgreSQL.
+Laravel 11 + Vue 3 SPA point-of-sale. The Vue app talks to Laravel over REST (`/api`) with Sanctum cookie auth. Database is MySQL (Laragon).
 
 ## Setup
 
@@ -8,7 +8,7 @@ Laravel 11 + Vue 3 SPA point-of-sale. The Vue app talks to Laravel over REST (`/
 composer install
 cp .env.example .env
 php artisan key:generate
-# Set DB_* in .env (PostgreSQL / Supabase)
+# Set DB_* in .env for local MySQL (Laragon defaults: root / empty password)
 php artisan migrate --seed
 php artisan storage:link
 npm install
@@ -23,13 +23,23 @@ Open http://127.0.0.1:8000
 
 Production frontend: `npm run build`.
 
-### Supabase / IPv6
+### Local MySQL (Laragon)
 
-Newer Supabase database hosts are IPv6-only. If PHP reports `Unknown host` or a connection timeout, use the **session pooler** (IPv4) from the Supabase dashboard:
+Create the database once, then migrate:
 
-- Host like `aws-0-<region>.pooler.supabase.com`
-- Port `5432`
-- Username `postgres.<project-ref>`
-- `DB_SSLMODE=require`
+```sql
+CREATE DATABASE simple_pos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+`.env` example:
+
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=simple_pos
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
 Never commit `.env`.

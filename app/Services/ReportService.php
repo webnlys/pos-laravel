@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\PurchaseItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Support\Search;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -252,8 +253,9 @@ class ReportService
         if ($request->filled('q')) {
             $q = $request->string('q');
             $query->where(function ($builder) use ($q) {
-                $builder->where('name', 'ilike', "%{$q}%")
-                    ->orWhere('sku', 'ilike', "%{$q}%");
+                $operator = Search::likeOperator($builder->getConnection());
+                $builder->where('name', $operator, "%{$q}%")
+                    ->orWhere('sku', $operator, "%{$q}%");
             });
         }
 

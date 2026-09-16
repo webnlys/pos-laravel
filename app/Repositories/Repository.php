@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Support\Search;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -30,9 +31,10 @@ abstract class Repository
         if ($request->filled('q') && $this->searchColumns() !== []) {
             $term = $request->string('q')->toString();
             $query->where(function (Builder $builder) use ($term) {
+                $operator = Search::likeOperator($builder->getConnection());
                 foreach ($this->searchColumns() as $index => $column) {
                     $method = $index === 0 ? 'where' : 'orWhere';
-                    $builder->{$method}($column, 'ilike', "%{$term}%");
+                    $builder->{$method}($column, $operator, "%{$term}%");
                 }
             });
         }

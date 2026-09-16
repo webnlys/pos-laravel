@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Sale;
+use App\Support\Search;
 use Illuminate\Http\Request;
 
 class SaleRepository extends Repository
@@ -19,8 +20,9 @@ class SaleRepository extends Repository
         if ($request->filled('q')) {
             $term = $request->string('q')->toString();
             $query->where(function ($builder) use ($term) {
-                $builder->where('number', 'ilike', "%{$term}%")
-                    ->orWhereHas('customer', fn ($q) => $q->where('name', 'ilike', "%{$term}%"));
+                $operator = Search::likeOperator($builder->getConnection());
+                $builder->where('number', $operator, "%{$term}%")
+                    ->orWhereHas('customer', fn ($q) => $q->where('name', $operator, "%{$term}%"));
             });
         }
 
