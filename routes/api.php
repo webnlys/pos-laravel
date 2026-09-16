@@ -32,8 +32,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('purchases', PurchaseController::class);
         Route::apiResource('sales', SaleController::class);
         Route::get('sales/{sale}/pdf', [SaleController::class, 'pdf'])->name('sales.pdf');
-        Route::get('quotations', [QuotationController::class, 'index'])->name('quotations.index');
-        Route::get('quotations/{quotation}', [QuotationController::class, 'show'])->name('quotations.show');
+        Route::apiResource('quotations', QuotationController::class);
+        Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
         Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'pdf'])->name('quotations.pdf');
         Route::get('settings', [BusinessSettingController::class, 'show'])->name('settings.show');
         Route::post('settings', [BusinessSettingController::class, 'update'])->name('settings.update');
