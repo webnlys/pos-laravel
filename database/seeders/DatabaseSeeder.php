@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use App\Models\BusinessSetting;
@@ -17,27 +16,27 @@ class DatabaseSeeder extends Seeder
         User::query()->firstOrCreate(
             ['email' => 'admin@simplepos.test'],
             [
-                'name' => 'Admin',
+                'name'     => 'Admin',
                 'password' => 'password',
-                'role' => 'admin',
+                'role'     => 'admin',
             ]
         );
 
         $customer = Customer::query()->firstOrCreate(
-            ['email' => 'customer@simplepos.test'],
+            ['email' => 'demo.customer@simplepos.test'],
             [
-                'name' => 'Walk-in Customer',
-                'phone' => '01700000000',
+                'name'    => 'Demo Customer',
+                'phone'   => '01700000000',
                 'address' => 'Dhaka, Bangladesh',
             ]
         );
 
         User::query()->firstOrCreate(
-            ['email' => 'customer@simplepos.test'],
+            ['email' => 'demo.customer@simplepos.test'],
             [
-                'name' => $customer->name,
-                'password' => 'password',
-                'role' => 'customer',
+                'name'        => $customer->name,
+                'password'    => 'password',
+                'role'        => 'customer',
                 'customer_id' => $customer->id,
             ]
         );
@@ -48,31 +47,23 @@ class DatabaseSeeder extends Seeder
         );
 
         Product::query()->firstOrCreate(
-            ['sku' => 'KB-001'],
-            ['name' => 'Mechanical Keyboard', 'sale_price' => 4500, 'cost_price' => 3200, 'stock_qty' => 10, 'is_active' => true]
-        );
-        Product::query()->firstOrCreate(
-            ['sku' => 'MS-001'],
-            ['name' => 'Wireless Mouse', 'sale_price' => 1200, 'cost_price' => 800, 'stock_qty' => 25, 'is_active' => true]
-        );
-        Product::query()->firstOrCreate(
-            ['sku' => 'HD-001'],
-            ['name' => '27" Monitor', 'sale_price' => 18500, 'cost_price' => 14200, 'stock_qty' => 5, 'is_active' => true]
+            ['sku' => 'SD-001'],
+            ['name' => 'SALA DOWN (curtain+shipon 2 window) (roller -3 pes)', 'sale_price' => 4500, 'cost_price' => 3200, 'stock_qty' => 10, 'is_active' => true]
         );
 
         Tax::query()->firstOrCreate(
             ['name' => 'VAT'],
             [
-                'rate_percent' => 15,
+                'rate_percent'   => 15,
                 'effective_from' => '2020-01-01 00:00:00',
-                'effective_to' => null,
+                'effective_to'   => null,
             ]
         );
 
         BusinessSetting::query()->firstOrCreate([], [
-            'name' => 'Simple POS',
-            'email' => 'hello@simplepos.test',
-            'phone' => '01300000000',
+            'name'    => 'Simple POS',
+            'email'   => 'hello@simplepos.test',
+            'phone'   => '01300000000',
             'address' => 'Dhaka, Bangladesh',
         ]);
     }
