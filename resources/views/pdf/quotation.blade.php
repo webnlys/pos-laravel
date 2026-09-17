@@ -43,6 +43,7 @@
 
     <p>
         <strong>Customer:</strong> {{ $document->customer?->name }}<br>
+        @if($document->customer?->email)Email: {{ $document->customer->email }}<br>@endif
         @if($document->customer?->phone)Phone: {{ $document->customer->phone }}<br>@endif
         @if($document->customer?->address){{ $document->customer->address }}@endif
     </p>
@@ -51,10 +52,12 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Item</th>
+                <th>Product</th>
                 <th class="right">Qty</th>
-                <th class="right">Unit Price</th>
-                <th class="right">Total</th>
+                <th class="right">Price</th>
+                <th class="right">Discount</th>
+                <th>Tax</th>
+                <th class="right">Amount</th>
             </tr>
         </thead>
         <tbody>
@@ -64,6 +67,14 @@
                     <td>{{ $item->product_name }}</td>
                     <td class="right">{{ $item->quantity }}</td>
                     <td class="right">{{ number_format($item->unit_price, 2) }}</td>
+                    <td class="right">{{ number_format($item->discount ?? 0, 2) }}</td>
+                    <td>
+                        @if($item->tax_name)
+                            {{ $item->tax_name }} ({{ number_format($item->tax_rate_percent, 2) }}%)
+                        @else
+                            —
+                        @endif
+                    </td>
                     <td class="right">{{ number_format($item->line_total, 2) }}</td>
                 </tr>
             @endforeach
@@ -73,18 +84,13 @@
     <table class="totals">
         <tr><td>Subtotal</td><td class="right">{{ number_format($document->subtotal, 2) }}</td></tr>
         <tr><td>Discount</td><td class="right">{{ number_format($document->discount, 2) }}</td></tr>
-        @foreach($document->taxes as $tax)
-            <tr>
-                <td>{{ $tax->name }} ({{ number_format($tax->rate_percent, 2) }}%)</td>
-                <td class="right">{{ number_format($tax->amount, 2) }}</td>
-            </tr>
-        @endforeach
+        <tr><td>Tax</td><td class="right">{{ number_format($document->tax_total, 2) }}</td></tr>
         <tr class="grand"><td>Total</td><td class="right">{{ number_format($document->total, 2) }}</td></tr>
     </table>
 
     @if($document->notes)
         <p><strong>Notes:</strong> {{ $document->notes }}</p>
     @endif
-    <p class="muted">This quotation is not a tax invoice and does not affect stock.</p>
+    <p class="muted">This quotation is not a tax invoice.</p>
 </body>
 </html>

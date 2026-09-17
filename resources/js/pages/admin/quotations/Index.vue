@@ -20,9 +20,8 @@
                         <div class="d-flex gap-2 flex-wrap">
                             <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.show', params: { id: row.id } }">View</router-link>
                             <a class="btn btn-outline-dark btn-sm" :href="`/api/admin/quotations/${row.id}/pdf`" target="_blank">PDF</a>
-                            <router-link v-if="!row.converted_sale_id" class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.edit', params: { id: row.id } }">Edit</router-link>
-                            <button v-if="!row.converted_sale_id" class="btn btn-outline-success btn-sm" @click="convert(row.id)">Convert to sale</button>
-                            <button v-if="!row.converted_sale_id" class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
+                            <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.edit', params: { id: row.id } }">Edit</router-link>
+                            <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
                         </div>
                     </td>
                 </tr>
@@ -36,11 +35,9 @@
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
-import { useRouter } from 'vue-router';
 import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
 
-const router = useRouter();
 const rows = ref([]);
 const meta = ref({});
 const q = ref('');
@@ -56,17 +53,6 @@ async function destroy(id) {
     if (!ok.isConfirmed) return;
     await axios.delete(`/api/admin/quotations/${id}`);
     load(meta.value.current_page);
-}
-
-async function convert(id) {
-    const ok = await Swal.fire({ title: 'Convert to sale? Stock will be deducted.', icon: 'question', showCancelButton: true });
-    if (!ok.isConfirmed) return;
-    try {
-        await axios.post(`/api/admin/quotations/${id}/convert`);
-        router.push({ name: 'admin.sales' });
-    } catch (e) {
-        Swal.fire('Error', Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Failed', 'error');
-    }
 }
 
 onMounted(() => load());

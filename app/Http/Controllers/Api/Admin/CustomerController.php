@@ -65,6 +65,14 @@ class CustomerController extends Controller
                 $payload['password'] = $password;
             }
             $customer->user->update($payload);
+        } elseif ($password) {
+            User::query()->create([
+                'name' => $customer->name,
+                'email' => $customer->email,
+                'password' => $password,
+                'role' => 'customer',
+                'customer_id' => $customer->id,
+            ]);
         }
 
         return new CustomerResource($customer);

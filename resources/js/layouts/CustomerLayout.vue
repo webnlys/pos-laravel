@@ -4,7 +4,6 @@
             <h5 class="mb-4">Customer</h5>
             <nav class="d-grid gap-1">
                 <router-link :to="{ name: 'customer.quotations' }">Quotations</router-link>
-                <router-link :to="{ name: 'customer.sales' }">Sales</router-link>
             </nav>
         </aside>
         <main class="flex-grow-1">

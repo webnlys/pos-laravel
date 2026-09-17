@@ -1,6 +1,6 @@
 <template>
     <PageShell title="Taxes" :create-to="{ name: 'admin.taxes.create' }">
-        <p class="text-muted">Rates apply to quotations and sales whose document date falls inside the window.</p>
+        <p class="text-muted">Select a tax type on each quotation line. The listed rate is applied to that product after discount.</p>
         <table class="table table-bordered">
             <thead><tr><th>Name</th><th>Rate %</th><th>From</th><th>To</th><th></th></tr></thead>
             <tbody>

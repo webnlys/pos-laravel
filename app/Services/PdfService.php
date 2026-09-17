@@ -39,6 +39,11 @@ class PdfService
     private function render(string $view, array $data, string $filename): string
     {
         $html = view($view, $data)->render();
+        $tempDir = storage_path('app/mpdf');
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
@@ -46,7 +51,7 @@ class PdfService
             'margin_bottom' => 12,
             'margin_left' => 12,
             'margin_right' => 12,
-            'tempDir' => storage_path('app/mpdf'),
+            'tempDir' => $tempDir,
         ]);
         $mpdf->WriteHTML($html);
 

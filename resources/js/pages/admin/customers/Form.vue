@@ -15,7 +15,7 @@
                     <input v-model="form.email" type="email" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Password {{ id ? '(leave blank to keep)' : '' }}</label>
+                    <label class="form-label">Password {{ id ? '(leave blank to keep; set one to enable login)' : '' }}</label>
                     <input v-model="form.password" type="password" class="form-control" :required="!id">
                 </div>
                 <div class="col-12">

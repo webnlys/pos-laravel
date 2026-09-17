@@ -9,14 +9,13 @@
         </form>
         <table class="table table-bordered">
             <thead>
-                <tr><th>Name</th><th>Phone</th><th>Email</th><th>Due</th><th></th></tr>
+                <tr><th>Name</th><th>Phone</th><th>Email</th><th></th></tr>
             </thead>
             <tbody>
                 <tr v-for="row in rows" :key="row.id">
                     <td>{{ row.name }}</td>
                     <td>{{ row.phone }}</td>
                     <td>{{ row.email }}</td>
-                    <td>{{ row.due }}</td>
                     <td>
                         <div class="d-flex gap-2">
                             <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.customers.edit', params: { id: row.id } }">Edit</router-link>

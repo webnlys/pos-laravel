@@ -16,12 +16,12 @@ class QuotationService
         private SaleService $sales,
     ) {}
 
-    public function create(array $data, int $userId): Quotation
+    public function create(array $data, ?int $userId): Quotation
     {
         return DB::transaction(function () use ($data, $userId) {
             $items = $this->normalizer->normalize($data['items']);
             $at = $this->normalizer->parseDatetime($data['document_datetime'] ?? null);
-            $totals = $this->taxes->totals($items, (float) ($data['discount'] ?? 0), $at);
+            $totals = $this->taxes->quotationTotals($items);
 
             $quotation = Quotation::query()->create([
                 'number' => $this->numbers->next('QT', Quotation::class),
@@ -36,7 +36,7 @@ class QuotationService
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            $this->syncLines($quotation, $items, $totals['taxes']);
+            $this->syncLines($quotation, $totals['items']);
 
             return $quotation->load(['customer', 'items', 'taxes']);
         });
@@ -53,7 +53,7 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $data) {
             $items = $this->normalizer->normalize($data['items']);
             $at = $this->normalizer->parseDatetime($data['document_datetime'] ?? $quotation->document_datetime);
-            $totals = $this->taxes->totals($items, (float) ($data['discount'] ?? 0), $at);
+            $totals = $this->taxes->quotationTotals($items);
 
             $quotation->update([
                 'customer_id' => $data['customer_id'] ?? $quotation->customer_id,
@@ -68,7 +68,7 @@ class QuotationService
 
             $quotation->items()->delete();
             $quotation->taxes()->delete();
-            $this->syncLines($quotation, $items, $totals['taxes']);
+            $this->syncLines($quotation, $totals['items']);
 
             return $quotation->fresh(['customer', 'items', 'taxes']);
         });
@@ -120,9 +120,8 @@ class QuotationService
 
     /**
      * @param  array<int, array<string, mixed>>  $items
-     * @param  array<int, array{name:string, rate_percent:float, amount:float}>  $taxes
      */
-    private function syncLines(Quotation $quotation, array $items, array $taxes): void
+    private function syncLines(Quotation $quotation, array $items): void
     {
         foreach ($items as $item) {
             $quotation->items()->create([
@@ -130,12 +129,13 @@ class QuotationService
                 'product_name' => $item['product_name'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
+                'discount' => $item['discount'] ?? 0,
+                'tax_id' => $item['tax_id'] ?? null,
+                'tax_name' => $item['tax_name'] ?? null,
+                'tax_rate_percent' => $item['tax_rate_percent'] ?? null,
+                'tax_amount' => $item['tax_amount'] ?? 0,
                 'line_total' => $item['line_total'],
             ]);
-        }
-
-        foreach ($taxes as $tax) {
-            $quotation->taxes()->create($tax);
         }
     }
 }

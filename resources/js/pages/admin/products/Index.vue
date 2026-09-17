@@ -14,7 +14,6 @@
                     <th>SKU</th>
                     <th>Sale</th>
                     <th>Cost</th>
-                    <th>Stock</th>
                     <th>Status</th>
                     <th></th>
                 </tr>
@@ -25,7 +24,6 @@
                     <td>{{ row.sku }}</td>
                     <td>{{ row.sale_price }}</td>
                     <td>{{ row.cost_price }}</td>
-                    <td>{{ row.stock_qty }}</td>
                     <td>
                         <span class="badge rounded-pill" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
                             {{ row.is_active ? 'Active' : 'Inactive' }}

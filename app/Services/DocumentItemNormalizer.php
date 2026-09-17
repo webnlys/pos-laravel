@@ -10,7 +10,7 @@ class DocumentItemNormalizer
 {
     /**
      * @param  array<int, array<string, mixed>>  $items
-     * @return array<int, array{product:Product, product_id:int, product_name:string, quantity:int, unit_price:float, unit_cost:float, line_total:float}>
+     * @return array<int, array<string, mixed>>
      */
     public function normalize(array $items, bool $useSalePrice = true): array
     {
@@ -52,6 +52,8 @@ class DocumentItemNormalizer
                 'quantity' => $quantity,
                 'unit_price' => round($unitPrice, 2),
                 'unit_cost' => round($unitCost, 2),
+                'discount' => round(max(0, (float) ($item['discount'] ?? 0)), 2),
+                'tax_id' => $item['tax_id'] ?? null,
                 'line_total' => round($quantity * $unitPrice, 2),
             ];
         }

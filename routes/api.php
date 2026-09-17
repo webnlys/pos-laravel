@@ -14,13 +14,24 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Customer\ProductController as CustomerProductController;
 use App\Http\Controllers\Api\Customer\QuotationController as CustomerQuotationController;
 use App\Http\Controllers\Api\Customer\SaleController as CustomerSaleController;
+use App\Http\Controllers\Api\GuestController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::middleware('throttle:30,1')->prefix('guest')->group(function () {
+    Route::get('products', [GuestController::class, 'products']);
+    Route::get('taxes', [GuestController::class, 'taxes']);
+    Route::post('quotations', [GuestController::class, 'store']);
+    Route::get('quotations/{quotation}/pdf', [GuestController::class, 'pdf'])
+        ->middleware('signed')
+        ->name('guest.quotations.pdf');
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/taxes', [AuthController::class, 'taxes']);
     Route::post('/tax-preview', [AuthController::class, 'taxPreview']);
 
     Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {

@@ -19,10 +19,6 @@
                     <input v-model.number="form.cost_price" type="number" step="0.01" class="form-control">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Opening stock</label>
-                    <input v-model.number="form.stock_qty" type="number" class="form-control" :disabled="!!id">
-                </div>
-                <div class="col-md-4">
                     <div class="form-check mt-4">
                         <input id="active" v-model="form.is_active" class="form-check-input" type="checkbox">
                         <label class="form-check-label" for="active">Active</label>

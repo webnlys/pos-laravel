@@ -1,7 +1,7 @@
 <template>
     <div class="min-vh-100 d-flex align-items-center justify-content-center">
         <div class="page-card p-4" style="width: 420px">
-            <h4 class="mb-3">Simple POS</h4>
+            <h4 class="mb-3">Quotations</h4>
             <p class="text-muted">Sign in to continue</p>
             <div v-if="error" class="alert alert-danger py-2">{{ error }}</div>
             <form @submit.prevent="submit">
@@ -17,6 +17,9 @@
                     {{ auth.loading ? 'Signing in...' : 'Login' }}
                 </button>
             </form>
+            <button type="button" class="btn btn-outline-secondary w-100 mt-3" @click="router.push({ name: 'guest.quotation' })">
+                Guest mode
+            </button>
             <p class="small text-muted mt-3 mb-0">Admin: admin@simplepos.test / password</p>
         </div>
     </div>
@@ -37,7 +40,7 @@ async function submit() {
     error.value = '';
     try {
         const user = await auth.login(email.value, password.value);
-        router.push(user.role === 'admin' ? { name: 'admin.home' } : { name: 'customer.quotations' });
+        router.push(user.role === 'admin' ? { name: 'admin.quotations' } : { name: 'customer.quotations' });
     } catch (e) {
         error.value = e.response?.data?.message || e.response?.data?.errors?.email?.[0] || 'Login failed';
     }
