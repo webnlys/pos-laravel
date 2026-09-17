@@ -1,6 +1,6 @@
 <template>
-    <div class="min-vh-100 d-flex align-items-center justify-content-center">
-        <div class="page-card p-4" style="width: 420px">
+    <div class="login-page">
+        <div class="page-card page-card-body login-card">
             <h4 class="mb-3">Quotations</h4>
             <p class="text-muted">Sign in to continue</p>
             <div v-if="error" class="alert alert-danger py-2">{{ error }}</div>

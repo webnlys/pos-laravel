@@ -17,7 +17,7 @@
                 <div class="col-md-6">
                     <label class="form-label">Logo</label>
                     <input type="file" class="form-control" accept="image/*" @change="onFile">
-                    <img v-if="logoUrl" :src="logoUrl" alt="logo" class="mt-2" style="max-height: 60px">
+                    <img v-if="logoUrl" :src="logoUrl" alt="logo" class="mt-2 img-fluid" style="max-height: 60px">
                 </div>
                 <div class="col-12">
                     <label class="form-label">Address</label>

@@ -1,22 +1,41 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+    max-width: 100%;
+}
+
 body {
     background: #f4f6f9;
     min-height: 100vh;
+    min-height: 100dvh;
+}
+
+body.nav-open {
+    overflow: hidden;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
 }
 
 .sidebar {
-    min-height: 100vh;
     background: #1f2937;
     color: #fff;
-    width: 240px;
+    width: 260px;
 }
 
 .sidebar a {
     color: #d1d5db;
     text-decoration: none;
     display: block;
-    padding: 0.55rem 1rem;
+    padding: 0.7rem 1rem;
     border-radius: 0.4rem;
 }
 
@@ -30,6 +49,12 @@ body {
     background: #fff;
     border-radius: 0.6rem;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    max-width: 100%;
+    min-width: 0;
+}
+
+.page-card-body {
+    padding: 1rem;
 }
 
 .report-sidebar {
@@ -44,11 +69,437 @@ body {
     vertical-align: middle;
 }
 
-@media print {
-    .no-print {
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1040;
+    height: 100%;
+    min-height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1035;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.sidebar-close,
+.sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: inherit;
+}
+
+.sidebar-close {
+    color: #fff;
+}
+
+.sidebar-toggle {
+    color: #111827;
+    background: #f3f4f6;
+}
+
+.app-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+}
+
+.app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    padding-top: calc(0.7rem + env(safe-area-inset-top));
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.app-topbar-user {
+    min-width: 0;
+    flex: 1;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logout-btn {
+    flex-shrink: 0;
+}
+
+.app-main {
+    flex: 1;
+    min-width: 0;
+    padding: 0.9rem;
+    padding-bottom: calc(0.9rem + env(safe-area-inset-bottom));
+}
+
+.login-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+}
+
+.guest-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.filter-field {
+    flex: 1 1 12rem;
+    min-width: 0;
+}
+
+.filter-form > .btn {
+    width: 100%;
+}
+
+.table-wrap {
+    width: 100%;
+}
+
+.stack-table td::before {
+    display: none;
+}
+
+.mobile-actions,
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.form-actions .btn {
+    flex: 1 1 100%;
+}
+
+.totals-box {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.85rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+}
+
+.totals-box > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.line-cards {
+    display: grid;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.line-card {
+    min-width: 0;
+    padding: 0.9rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.6rem;
+    background: #fff;
+}
+
+.line-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.line-remove-btn {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0.2rem 0;
+    border: 0;
+    background: none;
+    appearance: none;
+    color: #dc3545;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+    min-height: 32px;
+}
+
+.line-card-amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    padding-top: 0.65rem;
+    margin-top: 0.65rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.add-item-btn {
+    width: 100%;
+}
+
+.field-with-action {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.field-with-action .form-select {
+    min-width: 0;
+    flex: 1;
+}
+
+.modal-dialog {
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+}
+
+input[type="datetime-local"],
+input[type="date"],
+input[type="file"] {
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+}
+
+.btn,
+.sidebar-toggle,
+.sidebar-close {
+    touch-action: manipulation;
+}
+
+.swal2-container {
+    padding: 0.5rem !important;
+}
+
+.swal2-popup {
+    width: calc(100% - 1.25rem) !important;
+    max-width: 32em;
+}
+
+@media (max-width: 767.98px) {
+    .form-control,
+    .form-select,
+    .btn {
+        min-height: 42px;
+        font-size: 16px;
+    }
+
+    .btn-sm {
+        min-height: 38px;
+    }
+
+    .page-card form > .btn.btn-primary.mt-3 {
+        width: 100%;
+    }
+
+    .mobile-actions .btn {
+        flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .page-link {
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+    }
+
+    .modal-footer {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .modal-footer .btn {
+        margin: 0;
+        flex: 1 1 8rem;
+    }
+
+    .stack-table thead {
+        display: none;
+    }
+
+    .stack-table,
+    .stack-table tbody,
+    .stack-table tr,
+    .stack-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .stack-table {
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .stack-table.table-bordered > :not(caption) > * > * {
+        border: 0;
+    }
+
+    .stack-table tbody tr {
+        margin-bottom: 0.85rem;
+        padding: 0.7rem 0.85rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.6rem;
+    }
+
+    .stack-table tbody tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .stack-table td {
+        display: grid;
+        grid-template-columns: 6.5rem minmax(0, 1fr);
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid #f3f4f6 !important;
+        text-align: left;
+        word-break: break-word;
+    }
+
+    .stack-table td:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .stack-table td[data-label]::before {
+        display: block;
+        content: attr(data-label);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    .stack-table td.stack-actions {
+        display: block;
+        padding-top: 0.7rem;
+    }
+
+    .stack-table td.stack-actions::before {
+        display: none;
+    }
+}
+
+@media (min-width: 576px) {
+    .filter-form > .btn {
+        width: auto;
+    }
+
+    .form-actions .btn,
+    .mobile-actions .btn {
+        flex: 0 0 auto;
+    }
+
+    .modal-dialog {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (min-width: 768px) {
+    .page-card-body {
+        padding: 1.25rem;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .add-item-btn {
+        width: auto;
+    }
+}
+
+@media (min-width: 992px) {
+    .sidebar {
+        position: sticky;
+        transform: none;
+        flex-shrink: 0;
+    }
+
+    .sidebar-backdrop,
+    .sidebar-toggle,
+    .sidebar-close {
         display: none !important;
     }
-    .report-print {
+
+    .app-topbar {
+        padding: 0.85rem 1.5rem;
+    }
+
+    .app-main {
+        padding: 1.5rem;
+    }
+}
+
+@media print {
+    .no-print,
+    .app-topbar,
+    .sidebar,
+    .sidebar-backdrop {
+        display: none !important;
+    }
+
+    .report-print,
+    .app-main {
         background: #fff;
+        padding: 0;
     }
 }

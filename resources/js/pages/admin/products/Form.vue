@@ -18,8 +18,8 @@
                     <label class="form-label">Cost price</label>
                     <input v-model.number="form.cost_price" type="number" step="0.01" class="form-control">
                 </div>
-                <div class="col-md-4">
-                    <div class="form-check mt-4">
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check mb-2">
                         <input id="active" v-model="form.is_active" class="form-check-input" type="checkbox">
                         <label class="form-check-label" for="active">Active</label>
                     </div>

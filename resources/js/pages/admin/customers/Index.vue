@@ -1,30 +1,32 @@
 <template>
     <PageShell title="Customers" :create-to="{ name: 'admin.customers.create' }">
-        <form class="d-flex align-items-end gap-3 flex-wrap mb-3" @submit.prevent="load(1)">
-            <div>
+        <form class="filter-form mb-3" @submit.prevent="load(1)">
+            <div class="filter-field">
                 <label class="form-label">Search</label>
                 <input v-model="q" class="form-control" placeholder="Name, phone, email">
             </div>
             <button class="btn btn-primary">Search</button>
         </form>
-        <table class="table table-bordered">
-            <thead>
-                <tr><th>Name</th><th>Phone</th><th>Email</th><th></th></tr>
-            </thead>
-            <tbody>
-                <tr v-for="row in rows" :key="row.id">
-                    <td>{{ row.name }}</td>
-                    <td>{{ row.phone }}</td>
-                    <td>{{ row.email }}</td>
-                    <td>
-                        <div class="d-flex gap-2">
-                            <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.customers.edit', params: { id: row.id } }">Edit</router-link>
-                            <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-wrap">
+            <table class="table table-bordered stack-table">
+                <thead>
+                    <tr><th>Name</th><th>Phone</th><th>Email</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="row in rows" :key="row.id">
+                        <td data-label="Name">{{ row.name }}</td>
+                        <td data-label="Phone">{{ row.phone }}</td>
+                        <td data-label="Email">{{ row.email }}</td>
+                        <td class="stack-actions">
+                            <div class="mobile-actions">
+                                <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.customers.edit', params: { id: row.id } }">Edit</router-link>
+                                <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <PaginationBar :meta="meta" @change="load" />
     </PageShell>
 </template>

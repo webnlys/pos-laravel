@@ -1,6 +1,6 @@
 <template>
-    <nav v-if="meta.last_page > 1" class="mt-3">
-        <ul class="pagination">
+    <nav v-if="meta.last_page > 1" class="mt-3 d-flex justify-content-center">
+        <ul class="pagination mb-0">
             <li class="page-item" :class="{ disabled: meta.current_page <= 1 }">
                 <button class="page-link" type="button" @click="$emit('change', meta.current_page - 1)">Prev</button>
             </li>

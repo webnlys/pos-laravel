@@ -1,23 +1,25 @@
 <template>
     <PageShell title="Taxes" :create-to="{ name: 'admin.taxes.create' }">
         <p class="text-muted">Select a tax type on each quotation line. The listed rate is applied to that product after discount.</p>
-        <table class="table table-bordered">
-            <thead><tr><th>Name</th><th>Rate %</th><th>From</th><th>To</th><th></th></tr></thead>
-            <tbody>
-                <tr v-for="row in rows" :key="row.id">
-                    <td>{{ row.name }}</td>
-                    <td>{{ row.rate_percent }}</td>
-                    <td>{{ formatDate(row.effective_from) }}</td>
-                    <td>{{ row.effective_to ? formatDate(row.effective_to) : 'Open' }}</td>
-                    <td>
-                        <div class="d-flex gap-2">
-                            <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.taxes.edit', params: { id: row.id } }">Edit</router-link>
-                            <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-wrap">
+            <table class="table table-bordered stack-table">
+                <thead><tr><th>Name</th><th>Rate %</th><th>From</th><th>To</th><th></th></tr></thead>
+                <tbody>
+                    <tr v-for="row in rows" :key="row.id">
+                        <td data-label="Name">{{ row.name }}</td>
+                        <td data-label="Rate %">{{ row.rate_percent }}</td>
+                        <td data-label="From">{{ formatDate(row.effective_from) }}</td>
+                        <td data-label="To">{{ row.effective_to ? formatDate(row.effective_to) : 'Open' }}</td>
+                        <td class="stack-actions">
+                            <div class="mobile-actions">
+                                <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.taxes.edit', params: { id: row.id } }">Edit</router-link>
+                                <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <PaginationBar :meta="meta" @change="load" />
     </PageShell>
 </template>

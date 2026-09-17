@@ -1,7 +1,7 @@
 <template>
-    <div class="min-vh-100 py-4">
-        <div class="container" style="max-width: 1100px">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="guest-page">
+        <div class="container px-3" style="max-width: 1100px">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-3 mb-3">
                 <div>
                     <h4 class="mb-0">Guest quotation</h4>
                     <p class="text-muted mb-0">Create a quotation without signing in.</p>
@@ -9,7 +9,7 @@
                 <router-link class="btn btn-outline-secondary" :to="{ name: 'login' }">Back to login</router-link>
             </div>
 
-            <div class="page-card p-4">
+            <div class="page-card page-card-body">
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Date & time</label>
@@ -42,7 +42,7 @@
                 <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
                 <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
 
-                <div class="d-flex gap-2 mt-3">
+                <div class="form-actions mt-3">
                     <button type="button" class="btn btn-primary" :disabled="saving" @click="openModal('save')">Save</button>
                     <button type="button" class="btn btn-outline-dark" :disabled="saving" @click="openModal('print')">Print</button>
                 </div>
@@ -50,7 +50,7 @@
         </div>
 
         <div v-if="showModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.45)">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
                     <form @submit.prevent="submit">
                         <div class="modal-header">

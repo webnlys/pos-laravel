@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="table-responsive">
+        <div v-if="isDesktop" class="table-wrap">
             <table class="table table-bordered align-middle">
                 <thead>
                     <tr>
@@ -47,11 +47,50 @@
                 </tbody>
             </table>
         </div>
-        <button type="button" class="btn btn-outline-primary btn-sm" @click="add">Add item</button>
+
+        <div v-else class="line-cards">
+            <article v-for="(line, index) in items" :key="line.key" class="line-card">
+                <strong class="d-block mb-2">Item {{ index + 1 }}</strong>
+                <label class="form-label">Product</label>
+                <select v-model.number="line.product_id" class="form-select mb-2" @change="onProduct(line)">
+                    <option :value="0">Select product</option>
+                    <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }} ({{ p.sku }})</option>
+                </select>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <label class="form-label">Qty</label>
+                        <input v-model.number="line.quantity" type="number" min="1" class="form-control">
+                    </div>
+                    <div class="col-8">
+                        <label class="form-label">{{ showCost ? 'Unit cost' : 'Price' }}</label>
+                        <input v-if="showCost" v-model.number="line.unit_cost" type="number" min="0" step="0.01" class="form-control">
+                        <input v-else v-model.number="line.unit_price" type="number" min="0" step="0.01" class="form-control">
+                    </div>
+                    <div v-if="quotationMode" class="col-6">
+                        <label class="form-label">Discount</label>
+                        <input v-model.number="line.discount" type="number" min="0" step="0.01" class="form-control">
+                    </div>
+                    <div v-if="quotationMode" class="col-6">
+                        <label class="form-label">Tax</label>
+                        <select v-model="line.tax_id" class="form-select">
+                            <option :value="null">No tax</option>
+                            <option v-for="tax in taxes" :key="tax.id" :value="tax.id">{{ tax.name }} ({{ tax.rate_percent }}%)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="line-card-amount">
+                    <div>Amount <strong>{{ amount(line).toFixed(2) }}</strong></div>
+                    <button type="button" class="line-remove-btn" @click="remove(line)">Remove</button>
+                </div>
+            </article>
+        </div>
+
+        <button type="button" class="btn btn-outline-primary mt-2 add-item-btn" @click="add">Add item</button>
     </div>
 </template>
 
 <script setup>
+import { onMounted, onUnmounted, ref } from 'vue';
 import { lineAmount } from '../utils/quotationMath';
 
 const props = defineProps({
@@ -61,6 +100,23 @@ const props = defineProps({
     showCost: { type: Boolean, default: false },
     quotationMode: { type: Boolean, default: false },
 });
+
+const isDesktop = ref(typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
+let mediaQuery;
+
+onMounted(() => {
+    mediaQuery = window.matchMedia('(min-width: 768px)');
+    isDesktop.value = mediaQuery.matches;
+    mediaQuery.addEventListener('change', onBreakpoint);
+});
+
+onUnmounted(() => {
+    mediaQuery?.removeEventListener('change', onBreakpoint);
+});
+
+function onBreakpoint(event) {
+    isDesktop.value = event.matches;
+}
 
 function add() {
     props.items.push({

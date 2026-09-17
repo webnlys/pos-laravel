@@ -1,32 +1,34 @@
 <template>
     <PageShell title="Quotations" :create-to="{ name: 'admin.quotations.create' }">
-        <form class="d-flex align-items-end gap-3 flex-wrap mb-3" @submit.prevent="load(1)">
-            <div>
+        <form class="filter-form mb-3" @submit.prevent="load(1)">
+            <div class="filter-field">
                 <label class="form-label">Search</label>
-                <input v-model="q" class="form-control">
+                <input v-model="q" class="form-control" placeholder="Number or customer">
             </div>
             <button class="btn btn-primary">Search</button>
         </form>
-        <table class="table table-bordered">
-            <thead><tr><th>Number</th><th>Date</th><th>Customer</th><th>Total</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-                <tr v-for="row in rows" :key="row.id">
-                    <td>{{ row.number }}</td>
-                    <td>{{ String(row.document_datetime).slice(0, 16) }}</td>
-                    <td>{{ row.customer?.name }}</td>
-                    <td>{{ row.total }}</td>
-                    <td><span class="badge rounded-pill text-bg-secondary">{{ row.status }}</span></td>
-                    <td>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.show', params: { id: row.id } }">View</router-link>
-                            <a class="btn btn-outline-dark btn-sm" :href="`/api/admin/quotations/${row.id}/pdf`" target="_blank">PDF</a>
-                            <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.edit', params: { id: row.id } }">Edit</router-link>
-                            <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-wrap">
+            <table class="table table-bordered stack-table">
+                <thead><tr><th>Number</th><th>Date</th><th>Customer</th><th>Total</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    <tr v-for="row in rows" :key="row.id">
+                        <td data-label="Number">{{ row.number }}</td>
+                        <td data-label="Date">{{ String(row.document_datetime).slice(0, 16) }}</td>
+                        <td data-label="Customer">{{ row.customer?.name }}</td>
+                        <td data-label="Total">{{ row.total }}</td>
+                        <td data-label="Status"><span class="badge rounded-pill text-bg-secondary">{{ row.status }}</span></td>
+                        <td class="stack-actions">
+                            <div class="mobile-actions">
+                                <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.show', params: { id: row.id } }">View</router-link>
+                                <a class="btn btn-outline-dark btn-sm" :href="`/api/admin/quotations/${row.id}/pdf`" target="_blank">PDF</a>
+                                <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.edit', params: { id: row.id } }">Edit</router-link>
+                                <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <PaginationBar :meta="meta" @change="load" />
     </PageShell>
 </template>

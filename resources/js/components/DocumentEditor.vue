@@ -11,7 +11,7 @@
                 </div>
                 <div v-else-if="role === 'admin'" class="col-md-4">
                     <label class="form-label">Customer</label>
-                    <div class="d-flex gap-2">
+                    <div class="field-with-action">
                         <select v-model.number="form.customer_id" class="form-select" required>
                             <option :value="0">Select</option>
                             <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -64,7 +64,7 @@
             </div>
 
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
-            <div class="d-flex gap-2 mt-3">
+            <div class="form-actions mt-3">
                 <button class="btn btn-primary" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
                 <a v-if="id && kind === 'quotation'" class="btn btn-outline-dark" :href="`${resource}/${id}/pdf`" target="_blank">Print</a>
             </div>
@@ -72,7 +72,7 @@
     </PageShell>
 
     <div v-if="showCustomerModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.45)">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <form @submit.prevent="saveCustomer">
                     <div class="modal-header">
@@ -284,8 +284,9 @@ async function save() {
     justify-content: center;
     gap: 0.4rem;
     min-height: 42px;
-    padding: 0.5rem 1.15rem;
-    font-size: 1.05rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 </style>
