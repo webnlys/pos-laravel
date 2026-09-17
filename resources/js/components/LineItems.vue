@@ -6,7 +6,7 @@
                     <tr>
                         <th>Product</th>
                         <th style="width: 90px">Qty</th>
-                        <th style="width: 130px">{{ showCost ? 'Unit cost' : 'Sale price' }}</th>
+                        <th style="width: 130px">{{ showCost ? 'Unit cost' : 'Price' }}</th>
                         <th v-if="quotationMode" style="width: 120px">Discount</th>
                         <th v-if="quotationMode" style="width: 180px">Tax</th>
                         <th style="width: 130px">Amount</th>

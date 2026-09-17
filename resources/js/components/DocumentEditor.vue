@@ -11,10 +11,24 @@
                 </div>
                 <div v-else-if="role === 'admin'" class="col-md-4">
                     <label class="form-label">Customer</label>
-                    <select v-model.number="form.customer_id" class="form-select" required>
-                        <option :value="0">Select</option>
-                        <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
-                    </select>
+                    <div class="d-flex gap-2">
+                        <select v-model.number="form.customer_id" class="form-select" required>
+                            <option :value="0">Select</option>
+                            <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
+                        </select>
+                        <button
+                            v-if="kind === 'quotation'"
+                            type="button"
+                            class="btn btn-outline-primary add-customer-btn flex-shrink-0"
+                            title="Add customer"
+                            @click="openCustomerModal"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+                            </svg>
+                            Add
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Date & time</label>
@@ -56,6 +70,46 @@
             </div>
         </form>
     </PageShell>
+
+    <div v-if="showCustomerModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.45)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form @submit.prevent="saveCustomer">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add customer</h5>
+                        <button type="button" class="btn-close" @click="closeCustomerModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input v-model="customerForm.name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input v-model="customerForm.phone" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Login email</label>
+                            <input v-model="customerForm.email" type="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input v-model="customerForm.password" type="password" class="form-control" required minlength="6">
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Address</label>
+                            <textarea v-model="customerForm.address" class="form-control"></textarea>
+                        </div>
+                        <div v-if="customerError" class="alert alert-danger mt-3 mb-0">{{ customerError }}</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" @click="closeCustomerModal">Cancel</button>
+                        <button class="btn btn-primary" :disabled="savingCustomer">{{ savingCustomer ? 'Saving...' : 'Save customer' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -79,6 +133,9 @@ const suppliers = ref([]);
 const taxes = ref([]);
 const error = ref('');
 const saving = ref(false);
+const showCustomerModal = ref(false);
+const savingCustomer = ref(false);
+const customerError = ref('');
 const totals = ref({ subtotal: 0, discount: 0, tax_total: 0, total: 0, taxes: [] });
 const form = reactive({
     customer_id: 0,
@@ -88,6 +145,7 @@ const form = reactive({
     notes: '',
     items: [{ key: 1, product_id: 0, quantity: 1, unit_price: 0, unit_cost: 0, discount: 0, tax_id: null }],
 });
+const customerForm = reactive({ name: '', phone: '', email: '', password: '', address: '' });
 
 const base = props.role === 'admin' ? '/api/admin' : '/api/customer';
 const resource = `${base}/${props.kind === 'purchase' ? 'purchases' : props.kind === 'sale' ? 'sales' : 'quotations'}`;
@@ -134,6 +192,39 @@ watch(() => form.items, previewTax, { deep: true });
 
 function money(value) {
     return Number(value || 0).toFixed(2);
+}
+
+function emptyCustomerForm() {
+    Object.assign(customerForm, { name: '', phone: '', email: '', password: '', address: '' });
+}
+
+function openCustomerModal() {
+    emptyCustomerForm();
+    customerError.value = '';
+    showCustomerModal.value = true;
+}
+
+function closeCustomerModal() {
+    showCustomerModal.value = false;
+    customerError.value = '';
+    emptyCustomerForm();
+}
+
+async function saveCustomer() {
+    customerError.value = '';
+    savingCustomer.value = true;
+    try {
+        const { data } = await axios.post('/api/admin/customers', { ...customerForm });
+        const customer = data.data;
+        customers.value = [...customers.value.filter((c) => c.id !== customer.id), customer]
+            .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        form.customer_id = Number(customer.id);
+        closeCustomerModal();
+    } catch (e) {
+        customerError.value = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Save failed';
+    } finally {
+        savingCustomer.value = false;
+    }
 }
 
 async function previewTax() {
@@ -185,3 +276,16 @@ async function save() {
     }
 }
 </script>
+
+<style scoped>
+.add-customer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 42px;
+    padding: 0.5rem 1.15rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+</style>

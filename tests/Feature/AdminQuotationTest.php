@@ -116,4 +116,38 @@ class AdminQuotationTest extends TestCase
             ->assertJsonPath('data.customer_id', $customer->id)
             ->assertJsonPath('data.total', 35);
     }
+
+    public function test_admin_can_create_customer_and_attach_them_to_a_quotation(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $product = Product::query()->create([
+            'name' => 'Widget',
+            'sku' => 'WD-002',
+            'sale_price' => 80,
+            'cost_price' => 40,
+            'stock_qty' => 5,
+            'is_active' => true,
+        ]);
+
+        $customerResponse = $this->actingAs($admin)->postJson('/api/admin/customers', [
+            'name' => 'Walk-in Buyer',
+            'phone' => '01900000000',
+            'email' => 'walkin.buyer@example.test',
+            'password' => 'secret12',
+            'address' => 'Dhaka',
+        ]);
+
+        $customerResponse->assertCreated()
+            ->assertJsonPath('data.name', 'Walk-in Buyer');
+
+        $customerId = $customerResponse->json('data.id');
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customerId,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 80],
+            ],
+        ])->assertCreated()
+            ->assertJsonPath('data.customer_id', $customerId);
+    }
 }

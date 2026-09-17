@@ -9,7 +9,7 @@
                     <tr>
                         <th>Product</th>
                         <th>Qty</th>
-                        <th>Sale price</th>
+                        <th>Price</th>
                         <th>Discount</th>
                         <th>Tax</th>
                         <th>Amount</th>
