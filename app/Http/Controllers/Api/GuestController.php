@@ -7,6 +7,7 @@ use App\Http\Requests\GuestQuotationRequest;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\QuotationResource;
 use App\Http\Resources\TaxResource;
+use App\Models\BusinessSetting;
 use App\Models\Product;
 use App\Models\Quotation;
 use App\Models\Tax;
@@ -17,6 +18,22 @@ use Illuminate\Support\Facades\URL;
 
 class GuestController extends Controller
 {
+    public function business()
+    {
+        $settings = BusinessSetting::query()->firstOrCreate([], [
+            'name' => config('app.name'),
+            'currency' => config('currencies.default', 'AED'),
+        ]);
+
+        return response()->json([
+            'data' => [
+                'name' => $settings->name,
+                'currency' => $settings->currencyCode(),
+                'currencies' => config('currencies.codes'),
+            ],
+        ]);
+    }
+
     public function products()
     {
         return ProductResource::collection(

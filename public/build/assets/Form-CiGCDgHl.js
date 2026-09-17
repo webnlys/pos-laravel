@@ -1,1 +1,0 @@
-import{h as r,f as o,s as a,o as e}from"./app-BAyfPriD.js";import{D as i}from"./DocumentEditor-Ce5TZM_v.js";import"./LineItems-CAyoC-25.js";import"./PageShell-g2kq_5uS.js";const _={__name:"Form",setup(s){const t=a();return(n,u)=>(e(),r(i,{kind:"quotation",id:o(t).params.id,title:o(t).params.id?"Edit quotation":"New quotation"},null,8,["id","title"]))}};export{_ as default};

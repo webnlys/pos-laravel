@@ -23,8 +23,8 @@
                     <tr v-for="row in rows" :key="row.id">
                         <td data-label="Name">{{ row.name }}</td>
                         <td data-label="SKU">{{ row.sku }}</td>
-                        <td data-label="Sale">{{ row.sale_price }}</td>
-                        <td data-label="Cost">{{ row.cost_price }}</td>
+                        <td data-label="Sale">{{ money(row.sale_price) }}</td>
+                        <td data-label="Cost">{{ money(row.cost_price) }}</td>
                         <td data-label="Status">
                             <span class="badge rounded-pill" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
                                 {{ row.is_active ? 'Active' : 'Inactive' }}
@@ -50,10 +50,16 @@ import { onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
+import { useSettingsStore } from '../../../stores/settings';
 
+const settings = useSettingsStore();
 const rows = ref([]);
 const meta = ref({});
 const q = ref('');
+
+function money(value) {
+    return settings.formatMoney(value);
+}
 
 async function load(page = 1) {
     const { data } = await axios.get('/api/admin/products', { params: { q: q.value, page } });

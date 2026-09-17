@@ -12,7 +12,7 @@
         th, td { border: 1px solid #ccc; padding: 6px; }
         th { background: #f3f3f3; text-align: left; }
         .right { text-align: right; }
-        .totals { width: 280px; margin-left: auto; margin-top: 12px; }
+        .totals { width: 340px; margin-left: auto; margin-top: 12px; }
         .totals td { border: none; padding: 4px 0; }
         .totals .grand { font-weight: bold; border-top: 1px solid #111; }
         h1 { font-size: 20px; margin: 0 0 8px; }
@@ -62,26 +62,26 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $item->product_name }}</td>
                     <td class="right">{{ $item->quantity }}</td>
-                    <td class="right">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="right">{{ number_format($item->line_total, 2) }}</td>
+                    <td class="right">{{ $settings->formatMoney($item->unit_price) }}</td>
+                    <td class="right">{{ $settings->formatMoney($item->line_total) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
     <table class="totals">
-        <tr><td>Subtotal</td><td class="right">{{ number_format($document->subtotal, 2) }}</td></tr>
-        <tr><td>Discount</td><td class="right">{{ number_format($document->discount, 2) }}</td></tr>
+        <tr><td>Subtotal</td><td class="right">{{ $settings->formatMoney($document->subtotal) }}</td></tr>
+        <tr><td>Discount</td><td class="right">{{ $settings->formatMoney($document->discount) }}</td></tr>
         @foreach($document->taxes as $tax)
             <tr>
                 <td>{{ $tax->name }} ({{ number_format($tax->rate_percent, 2) }}%)</td>
-                <td class="right">{{ number_format($tax->amount, 2) }}</td>
+                <td class="right">{{ $settings->formatMoney($tax->amount) }}</td>
             </tr>
         @endforeach
-        <tr class="grand"><td>Total</td><td class="right">{{ number_format($document->total, 2) }}</td></tr>
+        <tr class="grand"><td>Total</td><td class="right">{{ $settings->formatMoney($document->total) }}</td></tr>
         @isset($paid)
-            <tr><td>Paid</td><td class="right">{{ number_format($paid, 2) }}</td></tr>
-            <tr><td>Due</td><td class="right">{{ number_format($due, 2) }}</td></tr>
+            <tr><td>Paid</td><td class="right">{{ $settings->formatMoney($paid) }}</td></tr>
+            <tr><td>Due</td><td class="right">{{ $settings->formatMoney($due) }}</td></tr>
         @endisset
     </table>
 

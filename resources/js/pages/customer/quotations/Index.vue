@@ -7,7 +7,7 @@
                     <tr v-for="row in rows" :key="row.id">
                         <td data-label="Number">{{ row.number }}</td>
                         <td data-label="Date">{{ String(row.document_datetime).slice(0, 16) }}</td>
-                        <td data-label="Total">{{ row.total }}</td>
+                        <td data-label="Total">{{ money(row.total) }}</td>
                         <td data-label="Status"><span class="badge rounded-pill text-bg-secondary">{{ row.status }}</span></td>
                         <td class="stack-actions">
                             <div class="mobile-actions">
@@ -30,9 +30,15 @@ import { onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
+import { useSettingsStore } from '../../../stores/settings';
 
+const settings = useSettingsStore();
 const rows = ref([]);
 const meta = ref({});
+
+function money(value) {
+    return settings.formatMoney(value);
+}
 
 async function load(page = 1) {
     const { data } = await axios.get('/api/customer/quotations', { params: { page } });

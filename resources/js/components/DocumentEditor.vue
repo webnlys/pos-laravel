@@ -118,6 +118,7 @@ import { onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import LineItems from './LineItems.vue';
 import PageShell from './PageShell.vue';
+import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
     kind: { type: String, required: true },
@@ -127,6 +128,7 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const settings = useSettingsStore();
 const products = ref([]);
 const customers = ref([]);
 const suppliers = ref([]);
@@ -191,7 +193,7 @@ onMounted(async () => {
 watch(() => form.items, previewTax, { deep: true });
 
 function money(value) {
-    return Number(value || 0).toFixed(2);
+    return settings.formatMoney(value);
 }
 
 function emptyCustomerForm() {

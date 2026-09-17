@@ -85,9 +85,11 @@ import axios from 'axios';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import LineItems from '../../components/LineItems.vue';
 import { quotationTotals } from '../../utils/quotationMath';
+import { useSettingsStore } from '../../stores/settings';
 
 const products = ref([]);
 const taxes = ref([]);
+const settings = useSettingsStore();
 const error = ref('');
 const success = ref('');
 const modalError = ref('');
@@ -121,7 +123,7 @@ watch(() => form.items, () => {
 }, { deep: true });
 
 function money(value) {
-    return Number(value || 0).toFixed(2);
+    return settings.formatMoney(value);
 }
 
 function openModal(nextIntent) {

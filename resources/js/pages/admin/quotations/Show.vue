@@ -22,19 +22,19 @@
                         <tr v-for="item in doc.items" :key="item.id">
                             <td data-label="Product">{{ item.product_name }}</td>
                             <td data-label="Qty">{{ item.quantity }}</td>
-                            <td data-label="Price">{{ item.unit_price }}</td>
-                            <td data-label="Discount">{{ item.discount }}</td>
+                            <td data-label="Price">{{ money(item.unit_price) }}</td>
+                            <td data-label="Discount">{{ money(item.discount) }}</td>
                             <td data-label="Tax">{{ item.tax_name ? `${item.tax_name} (${item.tax_rate_percent}%)` : '—' }}</td>
-                            <td data-label="Amount">{{ item.line_total }}</td>
+                            <td data-label="Amount">{{ money(item.line_total) }}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <div class="totals-box mb-3">
-                <div><span>Subtotal</span><span>{{ doc.subtotal }}</span></div>
-                <div><span>Discount</span><span>{{ doc.discount }}</span></div>
-                <div><span>Tax</span><span>{{ doc.tax_total }}</span></div>
-                <div class="fw-bold"><span>Total</span><span>{{ doc.total }}</span></div>
+                <div><span>Subtotal</span><span>{{ money(doc.subtotal) }}</span></div>
+                <div><span>Discount</span><span>{{ money(doc.discount) }}</span></div>
+                <div><span>Tax</span><span>{{ money(doc.tax_total) }}</span></div>
+                <div class="fw-bold"><span>Total</span><span>{{ money(doc.total) }}</span></div>
             </div>
             <div class="form-actions">
                 <a class="btn btn-outline-dark" :href="`/api/admin/quotations/${doc.id}/pdf`" target="_blank">Print</a>
@@ -52,11 +52,17 @@ import { onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useRoute, useRouter } from 'vue-router';
 import PageShell from '../../../components/PageShell.vue';
+import { useSettingsStore } from '../../../stores/settings';
 
 const route = useRoute();
 const router = useRouter();
+const settings = useSettingsStore();
 const doc = ref({});
 const error = ref('');
+
+function money(value) {
+    return settings.formatMoney(value);
+}
 
 onMounted(async () => {
     const { data } = await axios.get(`/api/admin/quotations/${route.params.id}`);

@@ -38,7 +38,7 @@
                             </select>
                         </td>
                         <td>
-                            <input class="form-control" :value="amount(line).toFixed(2)" disabled>
+                            <input class="form-control" :value="money(amount(line))" disabled>
                         </td>
                         <td>
                             <button type="button" class="btn btn-outline-danger" @click="remove(line)">X</button>
@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <div class="line-card-amount">
-                    <div>Amount <strong>{{ amount(line).toFixed(2) }}</strong></div>
+                    <div>Amount <strong>{{ money(amount(line)) }}</strong></div>
                     <button type="button" class="line-remove-btn" @click="remove(line)">Remove</button>
                 </div>
             </article>
@@ -92,6 +92,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
 import { lineAmount } from '../utils/quotationMath';
+import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
     items: { type: Array, required: true },
@@ -103,6 +104,11 @@ const props = defineProps({
 
 const isDesktop = ref(typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
 let mediaQuery;
+const settings = useSettingsStore();
+
+function money(value) {
+    return settings.formatMoney(value);
+}
 
 onMounted(() => {
     mediaQuery = window.matchMedia('(min-width: 768px)');

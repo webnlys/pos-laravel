@@ -65,6 +65,7 @@ class DatabaseSeeder extends Seeder
             'email'   => 'hello@simplepos.test',
             'phone'   => '01300000000',
             'address' => 'Dhaka, Bangladesh',
+            'currency' => 'AED',
         ]);
     }
 }

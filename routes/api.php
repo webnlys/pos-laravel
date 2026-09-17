@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\GuestController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/business', [GuestController::class, 'business']);
 
 Route::middleware('throttle:30,1')->prefix('guest')->group(function () {
     Route::get('products', [GuestController::class, 'products']);

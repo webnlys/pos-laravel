@@ -62,6 +62,7 @@ class PdfService
     {
         return BusinessSetting::query()->first() ?? new BusinessSetting([
             'name' => config('app.name'),
+            'currency' => config('currencies.default', 'AED'),
         ]);
     }
 }

@@ -12,7 +12,18 @@ class BusinessSetting extends Model
         'email',
         'phone',
         'address',
+        'currency',
     ];
+
+    public function currencyCode(): string
+    {
+        return $this->currency ?: (string) config('currencies.default', 'AED');
+    }
+
+    public function formatMoney(mixed $amount): string
+    {
+        return $this->currencyCode().' '.number_format((float) $amount, 2);
+    }
 
     public function logoPath(): ?string
     {
