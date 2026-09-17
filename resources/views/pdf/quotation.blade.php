@@ -91,6 +91,6 @@
     @if($document->notes)
         <p><strong>Notes:</strong> {{ $document->notes }}</p>
     @endif
-    <p class="muted">This quotation is not a tax invoice.</p>
+    <p class="muted">Thank you for your business!</p>
 </body>
 </html>
