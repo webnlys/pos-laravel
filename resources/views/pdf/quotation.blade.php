@@ -113,11 +113,10 @@
         </tfoot>
     </table>
 
-    {{-- amount in words --}}
-        <p>
-            <strong>Amount in words:</strong>
-            {{ $settings->amountInWords($document->total) }}
-        </p>
+    <p>
+        <strong>Amount in words:</strong>
+        {{ $settings->amountInWords($document->total) }}
+    </p>
 
     @if($document->notes)
         <p><strong>Notes:</strong> {{ $document->notes }}</p>

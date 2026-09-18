@@ -25,4 +25,10 @@ class MoneyWordsTest extends TestCase
     {
         $this->assertSame('Zero UAE Dirhams Only', MoneyWords::convert(0, 'AED'));
     }
+
+    public function test_converts_without_currency_words(): void
+    {
+        $this->assertSame('Ten Only', MoneyWords::convert(10, 'AED', false));
+        $this->assertSame('One Hundred Twenty-Five and Fifty Only', MoneyWords::convert(125.50, 'AED', false));
+    }
 }

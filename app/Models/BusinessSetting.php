@@ -58,7 +58,7 @@ class BusinessSetting extends Model
 
     public function amountInWords(mixed $amount): string
     {
-        return MoneyWords::convert($amount, $this->currencyCode());
+        return MoneyWords::convert($amount, $this->currencyCode(), false);
     }
 
     public static function documentTitle(?string $name = null): string

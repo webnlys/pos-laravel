@@ -40,7 +40,7 @@ class MoneyWords
         9 => 'Ninety',
     ];
 
-    public static function convert(mixed $amount, string $currency = 'AED'): string
+    public static function convert(mixed $amount, string $currency = 'AED', bool $includeCurrency = true): string
     {
         $negative = (float) $amount < 0;
         $formatted = number_format(abs((float) $amount), 2, '.', '');
@@ -56,11 +56,15 @@ class MoneyWords
         ]);
 
         $majorName = $major === 1 ? $names['major'] : $names['major_plural'];
-        $parts = [self::integer($major).' '.$majorName];
+        $parts = $includeCurrency
+            ? [self::integer($major).' '.$majorName]
+            : [self::integer($major)];
 
         if ($minor > 0) {
             $minorName = $minor === 1 ? $names['minor'] : $names['minor_plural'];
-            $parts[] = 'and '.self::integer($minor).' '.$minorName;
+            $parts[] = $includeCurrency
+                ? 'and '.self::integer($minor).' '.$minorName
+                : 'and '.self::integer($minor);
         }
 
         $words = implode(' ', $parts).' Only';
