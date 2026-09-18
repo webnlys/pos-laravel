@@ -10,6 +10,9 @@
         <table class="table table-bordered">
             <thead><tr><th>Number</th><th>Date</th><th>Supplier</th><th>Total</th><th></th></tr></thead>
             <tbody>
+                <tr v-if="!rows.length">
+                    <td colspan="5" class="text-center text-muted">No purchases found.</td>
+                </tr>
                 <tr v-for="row in rows" :key="row.id">
                     <td>{{ row.number }}</td>
                     <td>{{ String(row.document_datetime).slice(0, 16) }}</td>
@@ -24,7 +27,7 @@
                 </tr>
             </tbody>
         </table>
-        <PaginationBar :meta="meta" @change="load" />
+        <PaginationBar v-model:per-page="perPage" :meta="meta" @change="load" />
     </PageShell>
 </template>
 
@@ -38,9 +41,10 @@ import PaginationBar from '../../../components/PaginationBar.vue';
 const rows = ref([]);
 const meta = ref({});
 const q = ref('');
+const perPage = ref(15);
 
 async function load(page = 1) {
-    const { data } = await axios.get('/api/admin/purchases', { params: { q: q.value, page } });
+    const { data } = await axios.get('/api/admin/purchases', { params: { q: q.value, page, per_page: perPage.value } });
     rows.value = data.data;
     meta.value = data.meta;
 }

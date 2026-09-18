@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Purchase;
 use App\Support\Search;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PurchaseRepository extends Repository
 {
@@ -13,7 +14,7 @@ class PurchaseRepository extends Repository
         return Purchase::class;
     }
 
-    public function paginate(Request $request, string $orderBy = 'id', string $direction = 'desc')
+    public function paginate(Request $request, string $orderBy = 'id', string $direction = 'desc', array $with = []): LengthAwarePaginator
     {
         $query = $this->query()->with('supplier');
 
@@ -30,6 +31,6 @@ class PurchaseRepository extends Repository
             $query->where('supplier_id', $request->integer('supplier_id'));
         }
 
-        return $query->orderBy($orderBy, $direction)->paginate($request->integer('per_page', 15));
+        return $this->paginateQuery($query, $request, $orderBy, $direction);
     }
 }

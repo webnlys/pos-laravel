@@ -1,5 +1,5 @@
 <template>
-    <PageShell :title="doc.number || 'Quotation'">
+    <PageShell :title="doc.number || 'Quotation'" :back-to="{ name: 'admin.quotations' }">
         <div v-if="doc.id">
             <div class="row g-2 mb-3">
                 <div class="col-12 col-md-4"><strong>Customer:</strong> {{ doc.customer?.name }}</div>

@@ -13,6 +13,9 @@
                     <tr><th>Name</th><th>Phone</th><th>Email</th><th></th></tr>
                 </thead>
                 <tbody>
+                    <tr v-if="!rows.length">
+                        <td colspan="4" class="text-center text-muted">No customers found.</td>
+                    </tr>
                     <tr v-for="row in rows" :key="row.id">
                         <td data-label="Name">{{ row.name }}</td>
                         <td data-label="Phone">{{ row.phone }}</td>
@@ -27,7 +30,7 @@
                 </tbody>
             </table>
         </div>
-        <PaginationBar :meta="meta" @change="load" />
+        <PaginationBar v-model:per-page="perPage" :meta="meta" @change="load" />
     </PageShell>
 </template>
 
@@ -41,9 +44,10 @@ import PaginationBar from '../../../components/PaginationBar.vue';
 const rows = ref([]);
 const meta = ref({});
 const q = ref('');
+const perPage = ref(15);
 
 async function load(page = 1) {
-    const { data } = await axios.get('/api/admin/customers', { params: { q: q.value, page } });
+    const { data } = await axios.get('/api/admin/customers', { params: { q: q.value, page, per_page: perPage.value } });
     rows.value = data.data;
     meta.value = data.meta;
 }

@@ -1,10 +1,20 @@
 <template>
     <PageShell title="Taxes" :create-to="{ name: 'admin.taxes.create' }">
         <p class="text-muted">Select a tax type on each quotation line. The listed rate is applied to that product after discount.</p>
+        <form class="filter-form mb-3" @submit.prevent="load(1)">
+            <div class="filter-field">
+                <label class="form-label">Search</label>
+                <input v-model="q" class="form-control" placeholder="Tax name">
+            </div>
+            <button class="btn btn-primary">Search</button>
+        </form>
         <div class="table-wrap">
             <table class="table table-bordered stack-table">
                 <thead><tr><th>Name</th><th>Rate %</th><th>From</th><th>To</th><th></th></tr></thead>
                 <tbody>
+                    <tr v-if="!rows.length">
+                        <td colspan="5" class="text-center text-muted">No taxes found.</td>
+                    </tr>
                     <tr v-for="row in rows" :key="row.id">
                         <td data-label="Name">{{ row.name }}</td>
                         <td data-label="Rate %">{{ row.rate_percent }}</td>
@@ -20,7 +30,7 @@
                 </tbody>
             </table>
         </div>
-        <PaginationBar :meta="meta" @change="load" />
+        <PaginationBar v-model:per-page="perPage" :meta="meta" @change="load" />
     </PageShell>
 </template>
 
@@ -33,15 +43,17 @@ import PaginationBar from '../../../components/PaginationBar.vue';
 
 const rows = ref([]);
 const meta = ref({});
+const q = ref('');
+const perPage = ref(15);
 
 function formatDate(value) {
     return value ? String(value).replace('T', ' ').slice(0, 16) : '';
 }
 
 async function load(page = 1) {
-    const { data } = await axios.get('/api/admin/taxes', { params: { page } });
+    const { data } = await axios.get('/api/admin/taxes', { params: { q: q.value, page, per_page: perPage.value } });
     rows.value = data.data;
-    meta.value = data.meta;
+    meta.value = data.meta || {};
 }
 
 async function destroy(id) {

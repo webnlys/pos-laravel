@@ -2,10 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Support\Pagination;
 use App\Support\Search;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class Repository
 {
@@ -19,9 +21,18 @@ abstract class Repository
         return $class::query();
     }
 
-    public function paginate(Request $request, string $orderBy = 'id', string $direction = 'desc')
+    /**
+     * @param  array<int, string>  $with
+     */
+    public function paginate(Request $request, string $orderBy = 'id', string $direction = 'desc', array $with = []): LengthAwarePaginator
     {
-        return $this->filtered($request)->orderBy($orderBy, $direction)->paginate($request->integer('per_page', 15));
+        $query = $this->filtered($request);
+
+        if ($with !== []) {
+            $query->with($with);
+        }
+
+        return $this->paginateQuery($query, $request, $orderBy, $direction);
     }
 
     public function filtered(Request $request): Builder
@@ -40,6 +51,14 @@ abstract class Repository
         }
 
         return $query;
+    }
+
+    protected function paginateQuery(Builder $query, Request $request, string $orderBy, string $direction): LengthAwarePaginator
+    {
+        return $query
+            ->orderBy($orderBy, $direction)
+            ->paginate(Pagination::perPage($request), ['*'], 'page', Pagination::page($request))
+            ->withQueryString();
     }
 
     /**

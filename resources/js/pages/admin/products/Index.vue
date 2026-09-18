@@ -21,6 +21,9 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <tr v-if="!rows.length">
+                        <td colspan="7" class="text-center text-muted">No products found.</td>
+                    </tr>
                     <tr v-for="row in rows" :key="row.id">
                         <td data-label="Name">{{ row.name }}</td>
                         <td data-label="SKU">{{ row.sku }}</td>
@@ -42,7 +45,7 @@
                 </tbody>
             </table>
         </div>
-        <PaginationBar :meta="meta" @change="load" />
+        <PaginationBar v-model:per-page="perPage" :meta="meta" @change="load" />
     </PageShell>
 </template>
 
@@ -58,13 +61,14 @@ const settings = useSettingsStore();
 const rows = ref([]);
 const meta = ref({});
 const q = ref('');
+const perPage = ref(15);
 
 function money(value) {
     return settings.formatMoney(value);
 }
 
 async function load(page = 1) {
-    const { data } = await axios.get('/api/admin/products', { params: { q: q.value, page } });
+    const { data } = await axios.get('/api/admin/products', { params: { q: q.value, page, per_page: perPage.value } });
     rows.value = data.data;
     meta.value = data.meta;
 }

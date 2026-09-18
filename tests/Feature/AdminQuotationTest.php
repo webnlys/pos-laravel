@@ -273,4 +273,38 @@ class AdminQuotationTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_admin_list_endpoints_paginate_and_cap_per_page(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        for ($i = 1; $i <= 16; $i++) {
+            Product::query()->create([
+                'name' => "Item {$i}",
+                'sku' => 'SKU-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+                'sale_price' => 10,
+                'cost_price' => 5,
+                'stock_qty' => 0,
+                'is_active' => true,
+            ]);
+        }
+
+        $this->actingAs($admin)->getJson('/api/admin/products?per_page=10&page=2')
+            ->assertOk()
+            ->assertJsonPath('meta.per_page', 10)
+            ->assertJsonPath('meta.current_page', 2)
+            ->assertJsonPath('meta.last_page', 2)
+            ->assertJsonPath('meta.total', 16)
+            ->assertJsonCount(6, 'data');
+
+        $this->actingAs($admin)->getJson('/api/admin/products?per_page=500')
+            ->assertOk()
+            ->assertJsonPath('meta.per_page', 100)
+            ->assertJsonCount(16, 'data');
+
+        $this->actingAs($admin)->getJson('/api/admin/customers?page=1&per_page=15')
+            ->assertOk()
+            ->assertJsonPath('meta.current_page', 1)
+            ->assertJsonStructure(['data', 'meta' => ['current_page', 'last_page', 'per_page', 'total', 'from', 'to']]);
+    }
 }

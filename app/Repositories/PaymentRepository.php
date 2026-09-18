@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Payment;
 use App\Support\Search;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PaymentRepository extends Repository
 {
@@ -13,7 +14,7 @@ class PaymentRepository extends Repository
         return Payment::class;
     }
 
-    public function paginate(Request $request, string $orderBy = 'id', string $direction = 'desc')
+    public function paginate(Request $request, string $orderBy = 'id', string $direction = 'desc', array $with = []): LengthAwarePaginator
     {
         $query = $this->query()->with(['customer', 'sale']);
 
@@ -30,6 +31,6 @@ class PaymentRepository extends Repository
             $query->where('customer_id', $request->integer('customer_id'));
         }
 
-        return $query->orderBy($orderBy, $direction)->paginate($request->integer('per_page', 15));
+        return $this->paginateQuery($query, $request, $orderBy, $direction);
     }
 }

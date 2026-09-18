@@ -19,12 +19,7 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $paginator = $this->products->filtered($request)
-            ->with('unit')
-            ->orderBy('name', 'asc')
-            ->paginate($request->integer('per_page', 15));
-
-        return ProductResource::collection($paginator);
+        return ProductResource::collection($this->products->paginate($request, 'name', 'asc', ['unit']));
     }
 
     public function store(ProductRequest $request)
