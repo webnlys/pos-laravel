@@ -36,21 +36,12 @@
 
 <script setup>
 import axios from 'axios';
-import { onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
+import { usePagedList } from '../../../composables/usePagedList';
 
-const rows = ref([]);
-const meta = ref({});
-const q = ref('');
-const perPage = ref(15);
-
-async function load(page = 1) {
-    const { data } = await axios.get('/api/admin/sales', { params: { q: q.value, page, per_page: perPage.value } });
-    rows.value = data.data;
-    meta.value = data.meta;
-}
+const { rows, meta, q, perPage, load } = usePagedList('/api/admin/sales');
 
 async function destroy(id) {
     const ok = await Swal.fire({ title: 'Delete sale? Stock will be restored.', icon: 'warning', showCancelButton: true });
@@ -58,6 +49,4 @@ async function destroy(id) {
     await axios.delete(`/api/admin/sales/${id}`);
     load(meta.value.current_page);
 }
-
-onMounted(() => load());
 </script>

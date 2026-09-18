@@ -37,26 +37,17 @@
 
 <script setup>
 import axios from 'axios';
-import { onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
+import { usePagedList } from '../../../composables/usePagedList';
 import { useSettingsStore } from '../../../stores/settings';
 
 const settings = useSettingsStore();
-const rows = ref([]);
-const meta = ref({});
-const q = ref('');
-const perPage = ref(15);
+const { rows, meta, q, perPage, load } = usePagedList('/api/admin/quotations');
 
 function money(value) {
     return settings.formatMoney(value);
-}
-
-async function load(page = 1) {
-    const { data } = await axios.get('/api/admin/quotations', { params: { q: q.value, page, per_page: perPage.value } });
-    rows.value = data.data;
-    meta.value = data.meta;
 }
 
 async function destroy(id) {
@@ -65,6 +56,4 @@ async function destroy(id) {
     await axios.delete(`/api/admin/quotations/${id}`);
     load(meta.value.current_page);
 }
-
-onMounted(() => load());
 </script>
