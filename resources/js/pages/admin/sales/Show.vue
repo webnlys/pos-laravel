@@ -1,5 +1,5 @@
 <template>
-    <PageShell :title="doc.number || 'Quotation'" :back-to="{ name: 'admin.quotations' }">
+    <PageShell :title="doc.number || 'Sales invoice'" :back-to="{ name: 'admin.sales' }">
         <div v-if="doc.id">
             <div class="row g-2 mb-3">
                 <div class="col-12 col-md-4"><strong>Customer:</strong> {{ doc.customer?.name }}</div>
@@ -39,13 +39,9 @@
                 <div class="fw-bold"><span>Total</span><span>{{ money(doc.total) }}</span></div>
             </div>
             <div class="form-actions">
-                <a class="btn btn-outline-dark" :href="`/api/admin/quotations/${doc.id}/pdf`" target="_blank">Print</a>
-                <router-link v-if="!doc.converted_sale_id" class="btn btn-outline-info" :to="{ name: 'admin.quotations.edit', params: { id: doc.id } }">Edit</router-link>
-                <button v-if="!doc.converted_sale_id" class="btn btn-primary" :disabled="converting" @click="convert">
-                    {{ converting ? 'Converting...' : 'Convert to sale' }}
-                </button>
-                <router-link v-else class="btn btn-outline-success" :to="{ name: 'admin.sales.edit', params: { id: doc.converted_sale_id } }">Open sales invoice</router-link>
-                <button v-if="!doc.converted_sale_id" class="btn btn-outline-danger" @click="destroy">Delete</button>
+                <a class="btn btn-outline-dark" :href="`/api/admin/sales/${doc.id}/pdf`" target="_blank">Print</a>
+                <router-link class="btn btn-outline-info" :to="{ name: 'admin.sales.edit', params: { id: doc.id } }">Edit</router-link>
+                <button class="btn btn-outline-danger" @click="destroy">Delete</button>
             </div>
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
         </div>
@@ -65,43 +61,20 @@ const router = useRouter();
 const settings = useSettingsStore();
 const doc = ref({});
 const error = ref('');
-const converting = ref(false);
 
 function money(value) {
     return settings.formatMoney(value);
 }
 
 onMounted(async () => {
-    const { data } = await axios.get(`/api/admin/quotations/${route.params.id}`);
+    const { data } = await axios.get(`/api/admin/sales/${route.params.id}`);
     doc.value = data.data;
 });
 
-async function convert() {
-    const ok = await Swal.fire({
-        title: 'Convert to sales invoice?',
-        text: 'The sales invoice will open so you can review and save it.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Convert',
-    });
-    if (!ok.isConfirmed) return;
-
-    error.value = '';
-    converting.value = true;
-    try {
-        const { data } = await axios.post(`/api/admin/quotations/${doc.value.id}/convert`);
-        await router.push({ name: 'admin.sales.edit', params: { id: data.data.id } });
-    } catch (e) {
-        error.value = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Convert failed';
-    } finally {
-        converting.value = false;
-    }
-}
-
 async function destroy() {
-    const ok = await Swal.fire({ title: 'Delete quotation?', icon: 'warning', showCancelButton: true });
+    const ok = await Swal.fire({ title: 'Delete sales invoice?', icon: 'warning', showCancelButton: true });
     if (!ok.isConfirmed) return;
-    await axios.delete(`/api/admin/quotations/${doc.value.id}`);
-    router.push({ name: 'admin.quotations' });
+    await axios.delete(`/api/admin/sales/${doc.value.id}`);
+    router.push({ name: 'admin.sales' });
 }
 </script>

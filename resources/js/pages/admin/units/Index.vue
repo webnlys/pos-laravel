@@ -1,6 +1,6 @@
 <template>
     <PageShell title="Units" :create-to="{ name: 'admin.units.create' }">
-        <p class="text-muted">Units such as Piece, Kg, or Liter. Products and quotation lines can pick a unit, or type a new one to add it here.</p>
+        <p class="text-muted">Units such as Piece, Kg, or Liter. Products, quotation, and sales lines can pick a unit, or type a new one to add it here.</p>
         <form class="filter-form mb-3" @submit.prevent="load(1)">
             <div class="filter-field">
                 <label class="form-label">Search</label>

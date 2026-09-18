@@ -98,14 +98,18 @@ class QuotationService
 
             $sale = $this->sales->create([
                 'customer_id' => $quotation->customer_id,
-                'document_datetime' => now(),
-                'discount' => (float) $quotation->discount,
+                'document_datetime' => $quotation->document_datetime,
                 'notes' => $quotation->notes,
                 'quotation_id' => $quotation->id,
                 'items' => $quotation->items->map(fn ($item) => [
                     'product_id' => $item->product_id,
+                    'product_name' => $item->product_name,
+                    'unit_id' => $item->unit_id,
+                    'unit_name' => $item->unit_name,
                     'quantity' => $item->quantity,
                     'unit_price' => (float) $item->unit_price,
+                    'discount' => (float) $item->discount,
+                    'tax_id' => $item->tax_id,
                 ])->all(),
             ], $userId);
 

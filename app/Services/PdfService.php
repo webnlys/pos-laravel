@@ -17,8 +17,6 @@ class PdfService
             'document' => $sale,
             'title' => 'Sales Invoice',
             'settings' => $this->settings(),
-            'paid' => $sale->paidAmount(),
-            'due' => $sale->dueAmount(),
         ], $sale->number.'.pdf');
     }
 

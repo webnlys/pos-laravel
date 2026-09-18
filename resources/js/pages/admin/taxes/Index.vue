@@ -1,6 +1,6 @@
 <template>
     <PageShell title="Taxes" :create-to="{ name: 'admin.taxes.create' }">
-        <p class="text-muted">Select a tax type on each quotation line. The listed rate is applied to that product after discount.</p>
+        <p class="text-muted">Select a tax type on each quotation or sales line. The listed rate is applied to that product after discount.</p>
         <form class="filter-form mb-3" @submit.prevent="load(1)">
             <div class="filter-field">
                 <label class="form-label">Search</label>

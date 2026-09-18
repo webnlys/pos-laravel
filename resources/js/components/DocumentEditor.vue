@@ -17,7 +17,7 @@
                             <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
                         </select>
                         <button
-                            v-if="kind === 'quotation'"
+                            v-if="isLineDocument"
                             type="button"
                             class="btn btn-outline-primary add-customer-btn flex-shrink-0"
                             title="Add customer"
@@ -34,7 +34,7 @@
                     <label class="form-label">Date & time</label>
                     <input v-model="form.document_datetime" type="datetime-local" class="form-control" @change="previewTax">
                 </div>
-                <div v-if="kind !== 'purchase' && kind !== 'quotation'" class="col-md-4">
+                <div v-if="kind !== 'purchase' && !isLineDocument" class="col-md-4">
                     <label class="form-label">Discount</label>
                     <input v-model.number="form.discount" type="number" min="0" step="0.01" class="form-control" @change="previewTax">
                 </div>
@@ -46,7 +46,7 @@
                 :taxes="taxes"
                 :units="units"
                 :show-cost="kind === 'purchase'"
-                :quotation-mode="kind === 'quotation'"
+                :quotation-mode="isLineDocument"
                 allow-create
                 search-url="/api/admin/products"
             />
@@ -69,7 +69,16 @@
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
             <div class="form-actions mt-3">
                 <button class="btn btn-primary" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
-                <a v-if="id && kind === 'quotation'" class="btn btn-outline-dark" :href="`${resource}/${id}/pdf`" target="_blank">Print</a>
+                <a v-if="id && isLineDocument" class="btn btn-outline-dark" :href="`${resource}/${id}/pdf`" target="_blank">Print</a>
+                <button
+                    v-if="kind === 'quotation' && id && !convertedSaleId"
+                    type="button"
+                    class="btn btn-outline-success"
+                    :disabled="converting"
+                    @click="convertToSale"
+                >
+                    {{ converting ? 'Converting...' : 'Convert to sale' }}
+                </button>
             </div>
         </form>
     </PageShell>
@@ -113,7 +122,8 @@
 
 <script setup>
 import axios from 'axios';
-import { onMounted, reactive, ref, watch } from 'vue';
+import Swal from 'sweetalert2';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import LineItems from './LineItems.vue';
 import PageShell from './PageShell.vue';
@@ -134,6 +144,8 @@ const taxes = ref([]);
 const units = ref([]);
 const error = ref('');
 const saving = ref(false);
+const converting = ref(false);
+const convertedSaleId = ref(null);
 const showCustomerModal = ref(false);
 const savingCustomer = ref(false);
 const customerError = ref('');
@@ -148,6 +160,7 @@ const form = reactive({
 });
 const customerForm = reactive({ name: '', phone: '', email: '', address: '' });
 
+const isLineDocument = computed(() => props.kind === 'quotation' || props.kind === 'sale');
 const resource = `/api/admin/${props.kind === 'purchase' ? 'purchases' : props.kind === 'sale' ? 'sales' : 'quotations'}`;
 
 onMounted(async () => {
@@ -159,7 +172,7 @@ onMounted(async () => {
         props.kind === 'purchase'
             ? axios.get('/api/admin/suppliers', { params: { per_page: 100 } }).then((r) => { suppliers.value = r.data.data; })
             : Promise.resolve(),
-        props.kind === 'quotation'
+        isLineDocument.value
             ? axios.get('/api/taxes').then((r) => { taxes.value = r.data.data; })
             : Promise.resolve(),
         axios.get('/api/admin/units', { params: { per_page: 100 } }).then((r) => { units.value = r.data.data; }),
@@ -174,6 +187,7 @@ onMounted(async () => {
         form.document_datetime = String(doc.document_datetime).slice(0, 16);
         form.discount = doc.discount || 0;
         form.notes = doc.notes || '';
+        convertedSaleId.value = doc.converted_sale_id || null;
         form.items = (doc.items || []).map((item, i) => ({
             key: i + 1,
             product_id: item.product_id,
@@ -249,29 +263,33 @@ async function previewTax() {
     totals.value = data;
 }
 
+function documentPayload() {
+    const payload = {
+        document_datetime: form.document_datetime,
+        notes: form.notes,
+        items: filledItems().map((i) => ({
+            product_id: i.product_id || null,
+            product_name: i.product_name || null,
+            unit_id: i.unit_id || null,
+            unit_name: i.unit_name || null,
+            quantity: i.quantity,
+            unit_price: i.unit_price,
+            unit_cost: i.unit_cost,
+            discount: i.discount || 0,
+            tax_id: i.tax_id || null,
+        })),
+    };
+    if (!isLineDocument.value) payload.discount = form.discount || 0;
+    if (props.kind === 'purchase') payload.supplier_id = form.supplier_id;
+    else payload.customer_id = form.customer_id;
+    return payload;
+}
+
 async function save() {
     error.value = '';
     saving.value = true;
     try {
-        const payload = {
-            document_datetime: form.document_datetime,
-            notes: form.notes,
-            items: filledItems().map((i) => ({
-                product_id: i.product_id || null,
-                product_name: i.product_name || null,
-                unit_id: i.unit_id || null,
-                unit_name: i.unit_name || null,
-                quantity: i.quantity,
-                unit_price: i.unit_price,
-                unit_cost: i.unit_cost,
-                discount: i.discount || 0,
-                tax_id: i.tax_id || null,
-            })),
-        };
-        if (props.kind !== 'quotation') payload.discount = form.discount || 0;
-        if (props.kind === 'purchase') payload.supplier_id = form.supplier_id;
-        else payload.customer_id = form.customer_id;
-
+        const payload = documentPayload();
         if (props.id) await axios.put(`${resource}/${props.id}`, payload);
         else await axios.post(resource, payload);
 
@@ -281,6 +299,30 @@ async function save() {
         error.value = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Save failed';
     } finally {
         saving.value = false;
+    }
+}
+
+async function convertToSale() {
+    const ok = await Swal.fire({
+        title: 'Convert to sales invoice?',
+        text: 'Current changes will be saved, then the sales invoice will open for review.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Convert',
+    });
+    if (!ok.isConfirmed) return;
+
+    error.value = '';
+    converting.value = true;
+    try {
+        await axios.put(`${resource}/${props.id}`, documentPayload());
+        const { data } = await axios.post(`${resource}/${props.id}/convert`);
+        convertedSaleId.value = data.data.id;
+        await router.push({ name: 'admin.sales.edit', params: { id: data.data.id } });
+    } catch (e) {
+        error.value = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Convert failed';
+    } finally {
+        converting.value = false;
     }
 }
 </script>
