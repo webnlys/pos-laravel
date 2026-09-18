@@ -21,7 +21,12 @@ class QuotationService
         return DB::transaction(function () use ($data, $userId) {
             $items = $this->normalizer->normalize($data['items']);
             $at = $this->normalizer->parseDatetime($data['document_datetime'] ?? null);
-            $totals = $this->taxes->quotationTotals($items);
+            $totals = $this->taxes->quotationTotals(
+                $items,
+                $data['tax_mode'] ?? 'per_item',
+                (float) ($data['overall_discount'] ?? 0),
+                isset($data['overall_tax_id']) ? (int) $data['overall_tax_id'] : null,
+            );
 
             $quotation = Quotation::query()->create([
                 'number' => $this->numbers->next('QT', Quotation::class),
@@ -30,6 +35,11 @@ class QuotationService
                 'document_datetime' => $at,
                 'subtotal' => $totals['subtotal'],
                 'discount' => $totals['discount'],
+                'tax_mode' => $totals['tax_mode'],
+                'overall_discount' => $totals['overall_discount'],
+                'overall_tax_id' => $totals['overall_tax_id'],
+                'overall_tax_name' => $totals['overall_tax_name'],
+                'overall_tax_rate_percent' => $totals['overall_tax_rate_percent'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'status' => $data['status'] ?? 'draft',
@@ -53,13 +63,23 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $data) {
             $items = $this->normalizer->normalize($data['items']);
             $at = $this->normalizer->parseDatetime($data['document_datetime'] ?? $quotation->document_datetime);
-            $totals = $this->taxes->quotationTotals($items);
+            $totals = $this->taxes->quotationTotals(
+                $items,
+                $data['tax_mode'] ?? $quotation->tax_mode ?? 'per_item',
+                (float) ($data['overall_discount'] ?? $quotation->overall_discount ?? 0),
+                isset($data['overall_tax_id']) ? (int) $data['overall_tax_id'] : $quotation->overall_tax_id,
+            );
 
             $quotation->update([
                 'customer_id' => $data['customer_id'] ?? $quotation->customer_id,
                 'document_datetime' => $at,
                 'subtotal' => $totals['subtotal'],
                 'discount' => $totals['discount'],
+                'tax_mode' => $totals['tax_mode'],
+                'overall_discount' => $totals['overall_discount'],
+                'overall_tax_id' => $totals['overall_tax_id'],
+                'overall_tax_name' => $totals['overall_tax_name'],
+                'overall_tax_rate_percent' => $totals['overall_tax_rate_percent'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'status' => $data['status'] ?? $quotation->status,

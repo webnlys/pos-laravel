@@ -34,6 +34,7 @@ const routes = [
             { path: 'taxes/create', name: 'admin.taxes.create', component: () => import('../pages/admin/taxes/Form.vue') },
             { path: 'taxes/:id/edit', name: 'admin.taxes.edit', component: () => import('../pages/admin/taxes/Form.vue') },
             { path: 'settings', name: 'admin.settings', component: () => import('../pages/admin/Settings.vue') },
+            { path: 'profile', name: 'admin.profile', component: () => import('../pages/admin/Profile.vue') },
         ],
     },
     { path: '/', redirect: '/login' },

@@ -75,6 +75,12 @@ class DocumentRequest extends FormRequest
             $rules['payment.notes'] = ['nullable', 'string'];
         }
 
+        if ($this->routeIs('admin.quotations.*')) {
+            $rules['tax_mode'] = ['nullable', 'in:none,per_item,overall'];
+            $rules['overall_discount'] = ['nullable', 'numeric', 'min:0'];
+            $rules['overall_tax_id'] = ['nullable', 'exists:taxes,id', 'required_if:tax_mode,overall'];
+        }
+
         return $rules;
     }
 }

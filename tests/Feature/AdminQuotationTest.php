@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Quotation;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -68,6 +69,37 @@ class AdminQuotationTest extends TestCase
             'tax_amount' => 18,
             'line_total' => 198,
         ]);
+    }
+
+    public function test_quotation_pdf_download_filename_includes_customer_name_and_number(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Demo Customer']);
+        $product = Product::query()->create([
+            'name' => 'Widget',
+            'sku' => 'WD-PDF',
+            'sale_price' => 100,
+            'cost_price' => 60,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ])->assertCreated();
+
+        $quotation = Quotation::query()->first();
+
+        $response = $this->actingAs($admin)->get("/api/admin/quotations/{$quotation->id}/pdf");
+
+        $response->assertOk();
+        $this->assertStringContainsString(
+            'filename="Demo_Customer-quotation-'.$quotation->number.'.pdf"',
+            $response->headers->get('Content-Disposition'),
+        );
     }
 
     public function test_admin_can_create_quotation_with_typed_new_product_name(): void

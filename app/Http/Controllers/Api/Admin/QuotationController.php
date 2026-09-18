@@ -10,6 +10,7 @@ use App\Models\Quotation;
 use App\Repositories\QuotationRepository;
 use App\Services\PdfService;
 use App\Services\QuotationService;
+use App\Support\PdfFilename;
 use Illuminate\Http\Request;
 
 class QuotationController extends Controller
@@ -55,10 +56,13 @@ class QuotationController extends Controller
     public function pdf(Quotation $quotation)
     {
         $binary = $this->pdf->quotation($quotation);
+        $filename = PdfFilename::build($quotation->customer?->name, 'quotation', $quotation->number);
 
         return response($binary, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$quotation->number.'.pdf"',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
         ]);
     }
 }

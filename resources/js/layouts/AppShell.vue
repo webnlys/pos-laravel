@@ -13,6 +13,9 @@
             <nav class="d-grid gap-1 mt-3" @click="navOpen = false">
                 <slot name="nav" />
             </nav>
+            <div class="sidebar-footer mt-3 pt-3" @click="navOpen = false">
+                <router-link :to="{ name: 'admin.profile' }">Profile</router-link>
+            </div>
         </aside>
         <div class="app-content">
             <header class="app-topbar">
@@ -28,7 +31,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <div class="app-topbar-user">{{ auth.user?.name }}</div>
+                <router-link :to="{ name: 'admin.profile' }" class="app-topbar-user">{{ auth.user?.name }}</router-link>
                 <button class="btn btn-outline-secondary btn-sm logout-btn" @click="onLogout">Logout</button>
             </header>
             <main class="app-main">

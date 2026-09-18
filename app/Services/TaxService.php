@@ -58,19 +58,24 @@ class TaxService
      * @return array{
      *     subtotal:float,
      *     discount:float,
+     *     overall_discount:float,
+     *     tax_mode:string,
+     *     overall_tax_id:?int,
+     *     overall_tax_name:?string,
+     *     overall_tax_rate_percent:?float,
      *     tax_total:float,
      *     total:float,
      *     taxes:array<int, array{name:string, rate_percent:float, amount:float}>,
      *     items:array<int, array<string, mixed>>
      * }
      */
-    public function quotationTotals(array $items): array
+    public function quotationTotals(array $items, string $taxMode = 'per_item', float $overallDiscount = 0, ?int $overallTaxId = null): array
     {
         $taxesById = Tax::query()->get()->keyBy('id');
 
         $subtotal = 0.0;
-        $discountTotal = 0.0;
-        $taxTotal = 0.0;
+        $lineDiscountTotal = 0.0;
+        $perItemTaxTotal = 0.0;
         $lines = [];
         $taxRollup = [];
 
@@ -81,15 +86,15 @@ class TaxService
             $discount = round(min(max(0, (float) ($item['discount'] ?? 0)), $gross), 2);
             $net = round($gross - $discount, 2);
 
-            $taxId = $item['tax_id'] ?? null;
+            $taxId = $taxMode === 'per_item' ? ($item['tax_id'] ?? null) : null;
             $tax = $taxId ? $taxesById->get((int) $taxId) : null;
             $taxRate = $tax ? (float) $tax->rate_percent : null;
             $taxAmount = $tax ? round($net * $taxRate / 100, 2) : 0.0;
             $amount = round($net + $taxAmount, 2);
 
             $subtotal += $gross;
-            $discountTotal += $discount;
-            $taxTotal += $taxAmount;
+            $lineDiscountTotal += $discount;
+            $perItemTaxTotal += $taxAmount;
 
             if ($tax) {
                 $key = (int) $tax->id;
@@ -114,14 +119,42 @@ class TaxService
         }
 
         $subtotal = round($subtotal, 2);
-        $discountTotal = round($discountTotal, 2);
-        $taxTotal = round($taxTotal, 2);
+        $lineDiscountTotal = round($lineDiscountTotal, 2);
+        $perItemTaxTotal = round($perItemTaxTotal, 2);
+
+        $baseAfterLineDiscount = max(0, round($subtotal - $lineDiscountTotal, 2));
+        $overallDiscount = round(min(max(0, $overallDiscount), $baseAfterLineDiscount), 2);
+        $discountTotal = round($lineDiscountTotal + $overallDiscount, 2);
+        $taxableTotal = max(0, round($subtotal - $discountTotal, 2));
+
+        $overallTax = $taxMode === 'overall' && $overallTaxId ? $taxesById->get($overallTaxId) : null;
+
+        $taxTotal = match ($taxMode) {
+            'per_item' => $perItemTaxTotal,
+            'overall' => $overallTax ? round($taxableTotal * ((float) $overallTax->rate_percent) / 100, 2) : 0.0,
+            default => 0.0,
+        };
+
+        if ($taxMode === 'overall' && $overallTax) {
+            $taxRollup = [[
+                'name' => $overallTax->name,
+                'rate_percent' => (float) $overallTax->rate_percent,
+                'amount' => $taxTotal,
+            ]];
+        } elseif ($taxMode !== 'per_item') {
+            $taxRollup = [];
+        }
 
         return [
             'subtotal' => $subtotal,
             'discount' => $discountTotal,
+            'overall_discount' => $overallDiscount,
+            'tax_mode' => $taxMode,
+            'overall_tax_id' => $overallTax?->id,
+            'overall_tax_name' => $overallTax?->name,
+            'overall_tax_rate_percent' => $overallTax ? (float) $overallTax->rate_percent : null,
             'tax_total' => $taxTotal,
-            'total' => round($subtotal - $discountTotal + $taxTotal, 2),
+            'total' => round($taxableTotal + $taxTotal, 2),
             'taxes' => array_values($taxRollup),
             'items' => $lines,
         ];

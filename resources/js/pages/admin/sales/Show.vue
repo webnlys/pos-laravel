@@ -13,10 +13,10 @@
                             <th>Product</th>
                             <th>Qty</th>
                             <th>Unit</th>
-                            <th>Price ({{ settings.currency }})</th>
+                            <th>Unit Price ({{ settings.currency }})</th>
                             <th>Discount ({{ settings.currency }})</th>
                             <th>Tax</th>
-                            <th>Amount ({{ settings.currency }})</th>
+                            <th>Total ({{ settings.currency }})</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -24,10 +24,10 @@
                             <td data-label="Product">{{ item.product_name }}</td>
                             <td data-label="Qty">{{ item.quantity }}</td>
                             <td data-label="Unit">{{ item.unit_name || '—' }}</td>
-                            <td data-label="Price">{{ (item.unit_price) }}</td>
+                            <td data-label="Unit Price">{{ (item.unit_price) }}</td>
                             <td data-label="Discount">{{ (item.discount) }}</td>
                             <td data-label="Tax">{{ item.tax_name ? `${item.tax_name} (${item.tax_rate_percent}%)` : '—' }}</td>
-                            <td data-label="Amount">{{ (item.line_total) }}</td>
+                            <td data-label="Total">{{ (item.line_total) }}</td>
                         </tr>
                     </tbody>
                 </table>

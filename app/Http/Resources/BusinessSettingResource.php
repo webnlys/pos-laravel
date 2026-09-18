@@ -13,12 +13,15 @@ class BusinessSettingResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'logo' => $this->logo ? asset('storage/'.$this->logo) : null,
+            'signature' => $this->signature ? asset('storage/'.$this->signature) : null,
             'email' => $this->email,
             'phone' => $this->phone,
+            'website' => $this->website,
             'address' => $this->address,
             'currency' => $this->currencyCode(),
             'tagline' => $this->tagline,
             'invoice_terms' => $this->invoice_terms,
+            'quotation_terms' => $this->quotation_terms,
             'currencies' => config('currencies.codes'),
         ];
     }

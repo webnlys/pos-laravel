@@ -13,10 +13,10 @@
                             <th>Product</th>
                             <th>Qty</th>
                             <th>Unit</th>
-                            <th>Price ({{ settings.currency }})</th>
+                            <th>Unit Price ({{ settings.currency }})</th>
                             <th>Discount ({{ settings.currency }})</th>
-                            <th>Tax</th>
-                            <th>Amount ({{ settings.currency }})</th>
+                            <th v-if="showLineTax">{{ taxLabel }}</th>
+                            <th>Total ({{ settings.currency }})</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -24,10 +24,10 @@
                             <td data-label="Product">{{ item.product_name }}</td>
                             <td data-label="Qty">{{ item.quantity }}</td>
                             <td data-label="Unit">{{ item.unit_name || '—' }}</td>
-                            <td data-label="Price">{{ (item.unit_price) }}</td>
+                            <td data-label="Unit Price">{{ (item.unit_price) }}</td>
                             <td data-label="Discount">{{(item.discount) }}</td>
-                            <td data-label="Tax">{{ item.tax_name ? `${item.tax_name} (${item.tax_rate_percent}%)` : '—' }}</td>
-                            <td data-label="Amount">{{ (item.line_total) }}</td>
+                            <td v-if="showLineTax" :data-label="taxLabel">{{ item.tax_name ? item.tax_amount : '—' }}</td>
+                            <td data-label="Total">{{ (item.line_total) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -35,7 +35,7 @@
             <div class="totals-box mb-3">
                 <div><span>Subtotal</span><span>{{ money(doc.subtotal) }}</span></div>
                 <div><span>Discount</span><span>{{ money(doc.discount) }}</span></div>
-                <div><span>Tax</span><span>{{ money(doc.tax_total) }}</span></div>
+                <div><span>{{ taxLabel }}</span><span>{{ money(doc.tax_total) }}</span></div>
                 <div class="fw-bold"><span>Total</span><span>{{ money(doc.total) }}</span></div>
             </div>
             <div class="form-actions">
@@ -54,7 +54,7 @@
 
 <script setup>
 import axios from 'axios';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useRoute, useRouter } from 'vue-router';
 import PageShell from '../../../components/PageShell.vue';
@@ -66,6 +66,25 @@ const settings = useSettingsStore();
 const doc = ref({});
 const error = ref('');
 const converting = ref(false);
+const showLineTax = computed(() => (doc.value.tax_mode || 'per_item') === 'per_item');
+function fmtPct(value) {
+    return Number(value);
+}
+
+const taxLabel = computed(() => {
+    if (doc.value.tax_mode === 'overall' && doc.value.overall_tax_name) {
+        return `${doc.value.overall_tax_name} (${fmtPct(doc.value.overall_tax_rate_percent)}%)`;
+    }
+    if (showLineTax.value) {
+        const used = [...new Map((doc.value.items || [])
+            .filter((item) => item.tax_name)
+            .map((item) => [item.tax_id, item])).values()];
+        if (used.length === 1) {
+            return `${used[0].tax_name} (${fmtPct(used[0].tax_rate_percent)}%)`;
+        }
+    }
+    return 'Tax';
+});
 
 function money(value) {
     return settings.formatMoney(value);

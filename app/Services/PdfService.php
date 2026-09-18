@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BusinessSetting;
 use App\Models\Quotation;
 use App\Models\Sale;
+use App\Support\PdfFilename;
 use Mpdf\Mpdf;
 
 class PdfService
@@ -17,7 +18,7 @@ class PdfService
             'document' => $sale,
             'title' => 'Sales Invoice',
             'settings' => $this->settings(),
-        ], $sale->number.'.pdf');
+        ], PdfFilename::build($sale->customer?->name, 'invoice', $sale->number));
     }
 
     public function quotation(Quotation $quotation): string
@@ -28,7 +29,7 @@ class PdfService
             'document' => $quotation,
             'title' => 'Quotation',
             'settings' => $this->settings(),
-        ], $quotation->number.'.pdf');
+        ], PdfFilename::build($quotation->customer?->name, 'quotation', $quotation->number));
     }
 
     /**

@@ -25,13 +25,20 @@ class BusinessSettingController extends Controller
     public function update(BusinessSettingRequest $request)
     {
         $settings = $this->settings();
-        $data = $request->safe()->except('logo');
+        $data = $request->safe()->except(['logo', 'signature']);
 
         if ($request->hasFile('logo')) {
             if ($settings->logo) {
                 Storage::disk('public')->delete($settings->logo);
             }
             $data['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        if ($request->hasFile('signature')) {
+            if ($settings->signature) {
+                Storage::disk('public')->delete($settings->signature);
+            }
+            $data['signature'] = $request->file('signature')->store('signatures', 'public');
         }
 
         $settings->fill($data)->save();

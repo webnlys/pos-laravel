@@ -7,10 +7,15 @@
                         <th>Product</th>
                         <th style="width: 90px">Qty</th>
                         <th v-if="quotationMode" style="width: 130px">Unit</th>
-                        <th style="width: 130px">{{ showCost ? 'Unit cost' : 'Price' }} ({{ settings.currency }})</th>
+                        <th style="width: 130px">{{ showCost ? 'Unit cost' : 'Unit Price' }} ({{ settings.currency }})</th>
                         <th v-if="quotationMode" style="width: 140px">Discount ({{ settings.currency }})</th>
-                        <th v-if="quotationMode" style="width: 180px">Tax</th>
-                        <th style="width: 130px">Amount ({{ settings.currency }})</th>
+                        <th v-if="quotationMode && showTaxColumn" style="width: 180px">
+                            <select v-model="bulkTaxId" class="form-select form-select-sm" title="Apply a tax to all items" @change="applyBulkTax">
+                                <option :value="null">Tax: none</option>
+                                <option v-for="tax in taxes" :key="tax.id" :value="tax.id">Tax: {{ tax.name }} ({{ tax.rate_percent }}%)</option>
+                            </select>
+                        </th>
+                        <th style="width: 130px">Total ({{ settings.currency }})</th>
                         <th style="width: 60px"></th>
                     </tr>
                 </thead>
@@ -27,7 +32,7 @@
                             />
                         </td>
                         <td>
-                            <input v-model.number="line.quantity" type="number" min="1" class="form-control">
+                            <input v-model.number="line.quantity" type="text" inputmode="decimal" class="form-control">
                         </td>
                         <td v-if="quotationMode">
                             <NameSuggest
@@ -43,17 +48,18 @@
                             />
                         </td>
                         <td>
-                            <input v-if="showCost" v-model.number="line.unit_cost" type="number" min="0" step="0.01" class="form-control">
-                            <input v-else v-model.number="line.unit_price" type="number" min="0" step="0.01" class="form-control">
+                            <input v-if="showCost" v-model.number="line.unit_cost" type="text" inputmode="decimal" class="form-control">
+                            <input v-else v-model.number="line.unit_price" type="text" inputmode="decimal" class="form-control">
                         </td>
                         <td v-if="quotationMode">
-                            <input v-model.number="line.discount" type="number" min="0" step="0.01" class="form-control">
+                            <input v-model.number="line.discount" type="text" inputmode="decimal" class="form-control">
                         </td>
-                        <td v-if="quotationMode">
+                        <td v-if="quotationMode && showTaxColumn">
                             <select v-model="line.tax_id" class="form-select">
                                 <option :value="null">No tax</option>
                                 <option v-for="tax in taxes" :key="tax.id" :value="tax.id">{{ tax.name }} ({{ tax.rate_percent }}%)</option>
                             </select>
+                            <div v-if="line.tax_id" class="tax-amount-hint">{{ money(lineTaxAmount(line, taxes)) }}</div>
                         </td>
                         <td>
                             <input class="form-control" :value="amount(line)" disabled>
@@ -67,6 +73,13 @@
         </div>
 
         <div v-else class="line-cards">
+            <div v-if="quotationMode && showTaxColumn" class="mb-2">
+                <label class="form-label">Tax (applies to all items)</label>
+                <select v-model="bulkTaxId" class="form-select" @change="applyBulkTax">
+                    <option :value="null">No tax</option>
+                    <option v-for="tax in taxes" :key="tax.id" :value="tax.id">{{ tax.name }} ({{ tax.rate_percent }}%)</option>
+                </select>
+            </div>
             <article v-for="(line, index) in items" :key="line.key" class="line-card">
                 <strong class="d-block mb-2">Item {{ index + 1 }}</strong>
                 <label class="form-label">Product</label>
@@ -83,7 +96,7 @@
                 <div class="row g-2">
                     <div class="col-4">
                         <label class="form-label">Qty</label>
-                        <input v-model.number="line.quantity" type="number" min="1" class="form-control">
+                        <input v-model.number="line.quantity" type="text" inputmode="decimal" class="form-control">
                     </div>
                     <div v-if="quotationMode" class="col-4">
                         <label class="form-label">Unit</label>
@@ -100,24 +113,25 @@
                         />
                     </div>
                     <div :class="quotationMode ? 'col-4' : 'col-8'">
-                        <label class="form-label">{{ showCost ? 'Unit cost' : 'Price' }}</label>
-                        <input v-if="showCost" v-model.number="line.unit_cost" type="number" min="0" step="0.01" class="form-control">
-                        <input v-else v-model.number="line.unit_price" type="number" min="0" step="0.01" class="form-control">
+                        <label class="form-label">{{ showCost ? 'Unit cost' : 'Unit Price' }}</label>
+                        <input v-if="showCost" v-model.number="line.unit_cost" type="text" inputmode="decimal" class="form-control">
+                        <input v-else v-model.number="line.unit_price" type="text" inputmode="decimal" class="form-control">
                     </div>
                     <div v-if="quotationMode" class="col-6">
                         <label class="form-label">Discount</label>
-                        <input v-model.number="line.discount" type="number" min="0" step="0.01" class="form-control">
+                        <input v-model.number="line.discount" type="text" inputmode="decimal" class="form-control">
                     </div>
-                    <div v-if="quotationMode" class="col-6">
+                    <div v-if="quotationMode && showTaxColumn" class="col-6">
                         <label class="form-label">Tax</label>
                         <select v-model="line.tax_id" class="form-select">
                             <option :value="null">No tax</option>
                             <option v-for="tax in taxes" :key="tax.id" :value="tax.id">{{ tax.name }} ({{ tax.rate_percent }}%)</option>
                         </select>
+                        <div v-if="line.tax_id" class="tax-amount-hint">{{ money(lineTaxAmount(line, taxes)) }}</div>
                     </div>
                 </div>
                 <div class="line-card-amount">
-                    <div>Amount <strong>{{ money(amount(line)) }}</strong></div>
+                    <div>Total <strong>{{ money(amount(line)) }}</strong></div>
                     <button type="button" class="line-remove-btn" @click="remove(line)">Remove</button>
                 </div>
             </article>
@@ -131,7 +145,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import ProductSuggest from './ProductSuggest.vue';
 import NameSuggest from './NameSuggest.vue';
-import { lineAmount } from '../utils/quotationMath';
+import { lineAmount, lineTaxAmount } from '../utils/quotationMath';
 import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
@@ -141,6 +155,7 @@ const props = defineProps({
     units: { type: Array, default: () => [] },
     showCost: { type: Boolean, default: false },
     quotationMode: { type: Boolean, default: false },
+    showTaxColumn: { type: Boolean, default: true },
     allowCreate: { type: Boolean, default: false },
     searchUrl: { type: String, default: '' },
 });
@@ -148,6 +163,11 @@ const props = defineProps({
 const isDesktop = ref(typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
 let mediaQuery;
 const settings = useSettingsStore();
+const bulkTaxId = ref(null);
+
+function applyBulkTax() {
+    props.items.forEach((line) => { line.tax_id = bulkTaxId.value; });
+}
 
 function money(value) {
     return settings.formatMoney(value);
@@ -175,9 +195,9 @@ function emptyLine() {
         unit_id: 0,
         unit_name: '',
         quantity: 1,
-        unit_price: 0,
+        unit_price: '',
         unit_cost: 0,
-        discount: 0,
+        discount: '',
         tax_id: null,
     };
 }
@@ -219,7 +239,7 @@ function amount(line) {
         return (Number(line.quantity) || 0) * (Number(line.unit_cost) || 0);
     }
     if (props.quotationMode) {
-        return lineAmount(line, props.taxes);
+        return lineAmount(line, props.showTaxColumn ? props.taxes : []);
     }
     return (Number(line.quantity) || 0) * (Number(line.unit_price) || 0);
 }
@@ -230,3 +250,11 @@ function hasProduct(line) {
 
 defineExpose({ hasProduct });
 </script>
+
+<style scoped>
+.tax-amount-hint {
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+</style>

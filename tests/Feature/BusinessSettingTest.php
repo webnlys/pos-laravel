@@ -73,6 +73,40 @@ class BusinessSettingTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_update_website(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->postJson('/api/admin/settings', [
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+            'website' => 'https://desertshop.example',
+        ])->assertSuccessful()
+            ->assertJsonPath('data.website', 'https://desertshop.example');
+
+        $this->assertDatabaseHas('business_settings', [
+            'name' => 'Desert Shop',
+            'website' => 'https://desertshop.example',
+        ]);
+    }
+
+    public function test_admin_can_update_quotation_terms(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->postJson('/api/admin/settings', [
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+            'quotation_terms' => 'Prices are valid for 14 days.',
+        ])->assertSuccessful()
+            ->assertJsonPath('data.quotation_terms', 'Prices are valid for 14 days.');
+
+        $this->assertDatabaseHas('business_settings', [
+            'name' => 'Desert Shop',
+            'quotation_terms' => 'Prices are valid for 14 days.',
+        ]);
+    }
+
     public function test_admin_cannot_set_unknown_currency(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -82,6 +116,43 @@ class BusinessSettingTest extends TestCase
             'currency' => 'XXX',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors('currency');
+    }
+
+    public function test_quotation_pdf_html_includes_barcode_and_signature_block(): void
+    {
+        BusinessSetting::query()->create([
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+        ]);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Walk-in']);
+        $product = Product::query()->create([
+            'name' => 'Panel',
+            'sku' => 'PN-BARCODE',
+            'sale_price' => 10,
+            'cost_price' => 5,
+            'stock_qty' => 0,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 10],
+            ],
+        ])->assertCreated();
+
+        $quotation = Quotation::query()->first();
+        $html = view('pdf.quotation', [
+            'document' => $quotation->load(['customer', 'items', 'taxes']),
+            'title' => 'Quotation',
+            'settings' => BusinessSetting::query()->first(),
+        ])->render();
+
+        $this->assertStringContainsString('class="barcode-wrap"', $html);
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertStringContainsString('Authorized Signature', $html);
+        $this->assertStringContainsString('Printed on:', $html);
     }
 
     public function test_quotation_pdf_html_uses_selected_currency(): void
@@ -160,12 +231,13 @@ class BusinessSettingTest extends TestCase
         $this->assertStringNotContainsString('Thank you for your business!', $html);
     }
 
-    public function test_quotation_pdf_html_uses_invoice_terms_at_bottom(): void
+    public function test_quotation_pdf_html_uses_quotation_terms_at_bottom(): void
     {
         BusinessSetting::query()->create([
             'name' => 'Desert Shop',
             'currency' => 'AED',
             'invoice_terms' => 'Payment is due within 14 days.',
+            'quotation_terms' => 'Prices are valid for 14 days.',
         ]);
         $admin = User::factory()->create(['role' => 'admin']);
         $customer = Customer::query()->create(['name' => 'Walk-in']);
@@ -193,8 +265,8 @@ class BusinessSettingTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Terms and Conditions', $html);
-        $this->assertStringContainsString('<li>Payment is due within 14 days.</li>', $html);
-        $this->assertStringContainsString('htmlpagefooter', $html);
+        $this->assertStringContainsString('<li>Prices are valid for 14 days.</li>', $html);
+        $this->assertStringNotContainsString('Payment is due within 14 days.', $html);
     }
 
     public function test_spa_meta_title_uses_business_name(): void

@@ -49,9 +49,32 @@
                 :units="units"
                 :show-cost="kind === 'purchase'"
                 :quotation-mode="isLineDocument"
+                :show-tax-column="showLineTaxColumn"
                 allow-create
                 search-url="/api/admin/products"
             />
+
+            <div v-if="kind === 'quotation'" class="row g-3 mt-1">
+                <div class="col-md-4">
+                    <label class="form-label">Tax</label>
+                    <select v-model="form.tax_mode" class="form-select" @change="previewTax">
+                        <option value="none">No tax</option>
+                        <option value="per_item">Per item tax (VAT column)</option>
+                        <option value="overall">Overall tax (on subtotal)</option>
+                    </select>
+                </div>
+                <div v-if="form.tax_mode === 'overall'" class="col-md-4">
+                    <label class="form-label">Overall tax</label>
+                    <select v-model.number="form.overall_tax_id" class="form-select" @change="previewTax">
+                        <option :value="null">Select tax</option>
+                        <option v-for="tax in taxes" :key="tax.id" :value="tax.id">{{ tax.name }} ({{ tax.rate_percent }}%)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Overall discount ({{ settings.currency }})</label>
+                    <input v-model.number="form.overall_discount" type="text" inputmode="decimal" class="form-control" @change="previewTax">
+                </div>
+            </div>
 
             <div class="row mt-3">
                 <div class="col-md-6">
@@ -202,12 +225,16 @@ const form = reactive({
     supplier_id: 0,
     document_datetime: new Date().toISOString().slice(0, 16),
     discount: 0,
+    tax_mode: 'per_item',
+    overall_discount: '',
+    overall_tax_id: null,
     notes: '',
-    items: [{ key: 1, product_id: 0, product_name: '', unit_id: 0, unit_name: '', quantity: 1, unit_price: 0, unit_cost: 0, discount: 0, tax_id: null }],
+    items: [{ key: 1, product_id: 0, product_name: '', unit_id: 0, unit_name: '', quantity: 1, unit_price: '', unit_cost: 0, discount: '', tax_id: null }],
 });
 const customerForm = reactive({ name: '', phone: '', email: '', address: '' });
 
 const isLineDocument = computed(() => props.kind === 'quotation' || props.kind === 'sale');
+const showLineTaxColumn = computed(() => props.kind !== 'quotation' || form.tax_mode === 'per_item');
 const resource = `/api/admin/${props.kind === 'purchase' ? 'purchases' : props.kind === 'sale' ? 'sales' : 'quotations'}`;
 const paymentPreview = computed(() => paymentSummary(totals.value.total, recordedPaid.value + Number(payment.amount || 0)));
 
@@ -234,6 +261,11 @@ onMounted(async () => {
         form.supplier_id = doc.supplier_id || 0;
         form.document_datetime = String(doc.document_datetime).slice(0, 16);
         form.discount = doc.discount || 0;
+        if (props.kind === 'quotation') {
+            form.tax_mode = doc.tax_mode || 'per_item';
+            form.overall_discount = doc.overall_discount || '';
+            form.overall_tax_id = doc.overall_tax_id || null;
+        }
         form.notes = doc.notes || '';
         convertedSaleId.value = doc.converted_sale_id || null;
         recordedPaid.value = Number(doc.paid || 0);
@@ -304,14 +336,20 @@ async function previewTax() {
     if (props.kind === 'purchase') return;
     const items = filledItems();
     if (!items.length) return;
-    const { data } = await axios.post('/api/tax-preview', {
+    const payload = {
         items: items.map((i) => ({
             quantity: i.quantity,
-            unit_price: i.unit_price,
+            unit_price: i.unit_price === '' ? 0 : i.unit_price,
             discount: i.discount || 0,
             tax_id: i.tax_id || null,
         })),
-    });
+    };
+    if (props.kind === 'quotation') {
+        payload.tax_mode = form.tax_mode;
+        payload.overall_discount = form.overall_discount || 0;
+        payload.overall_tax_id = form.tax_mode === 'overall' ? (form.overall_tax_id || null) : null;
+    }
+    const { data } = await axios.post('/api/tax-preview', payload);
     totals.value = data;
 }
 
@@ -325,13 +363,18 @@ function documentPayload() {
             unit_id: i.unit_id || null,
             unit_name: i.unit_name || null,
             quantity: i.quantity,
-            unit_price: i.unit_price,
-            unit_cost: i.unit_cost,
+            unit_price: i.unit_price === '' ? null : i.unit_price,
+            unit_cost: i.unit_cost === '' ? null : i.unit_cost,
             discount: i.discount || 0,
             tax_id: i.tax_id || null,
         })),
     };
     if (!isLineDocument.value) payload.discount = form.discount || 0;
+    if (props.kind === 'quotation') {
+        payload.tax_mode = form.tax_mode;
+        payload.overall_discount = form.overall_discount || 0;
+        payload.overall_tax_id = form.tax_mode === 'overall' ? (form.overall_tax_id || null) : null;
+    }
     if (props.kind === 'purchase') payload.supplier_id = form.supplier_id;
     else payload.customer_id = form.customer_id;
     if (props.kind === 'sale' && Number(payment.amount || 0) > 0) {

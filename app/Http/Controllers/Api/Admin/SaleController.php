@@ -9,6 +9,7 @@ use App\Models\Sale;
 use App\Repositories\SaleRepository;
 use App\Services\PdfService;
 use App\Services\SaleService;
+use App\Support\PdfFilename;
 use Illuminate\Http\Request;
 
 class SaleController extends Controller
@@ -51,10 +52,13 @@ class SaleController extends Controller
     public function pdf(Sale $sale)
     {
         $binary = $this->pdf->sale($sale);
+        $filename = PdfFilename::build($sale->customer?->name, 'invoice', $sale->number);
 
         return response($binary, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$sale->number.'.pdf"',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
         ]);
     }
 }

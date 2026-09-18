@@ -20,6 +20,8 @@ Route::get('/business', [BusinessSettingController::class, 'publicShow']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/profile/password', [AuthController::class, 'updatePassword']);
     Route::get('/taxes', [AuthController::class, 'taxes']);
     Route::post('/tax-preview', [AuthController::class, 'taxPreview']);
 

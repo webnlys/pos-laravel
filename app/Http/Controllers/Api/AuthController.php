@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileRequest;
+use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Resources\TaxResource;
 use App\Http\Resources\UserResource;
 use App\Models\Tax;
@@ -60,6 +62,21 @@ class AuthController extends Controller
         return new UserResource($request->user());
     }
 
+    public function updateProfile(ProfileRequest $request)
+    {
+        $user = $request->user();
+        $user->fill($request->validated())->save();
+
+        return new UserResource($user);
+    }
+
+    public function updatePassword(UpdatePasswordRequest $request)
+    {
+        $request->user()->update(['password' => $request->validated('password')]);
+
+        return response()->json(['message' => 'Password updated']);
+    }
+
     public function taxes()
     {
         return TaxResource::collection(Tax::query()->orderBy('name')->get());
@@ -73,8 +90,16 @@ class AuthController extends Controller
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'items.*.discount' => ['nullable', 'numeric', 'min:0'],
             'items.*.tax_id' => ['nullable', 'exists:taxes,id'],
+            'tax_mode' => ['nullable', 'in:none,per_item,overall'],
+            'overall_discount' => ['nullable', 'numeric', 'min:0'],
+            'overall_tax_id' => ['nullable', 'exists:taxes,id'],
         ]);
 
-        return response()->json($taxes->quotationTotals($data['items']));
+        return response()->json($taxes->quotationTotals(
+            $data['items'],
+            $data['tax_mode'] ?? 'per_item',
+            (float) ($data['overall_discount'] ?? 0),
+            isset($data['overall_tax_id']) ? (int) $data['overall_tax_id'] : null,
+        ));
     }
 }
