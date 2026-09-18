@@ -4,17 +4,13 @@
     <meta charset="utf-8">
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; }
-        .header { width: 100%; border-bottom: 2px solid #111; margin-bottom: 16px; }
-        .header td { border: none; vertical-align: middle; padding: 8px 12px; }
-        .header-logo { width: 18%; text-align: center; border-right: 1px solid #111 !important; }
-        .header-info { width: 50%; border-right: 1px solid #111 !important; }
-        .header-meta { width: 32%; text-align: right; }
-        .logo { max-height: 70px; max-width: 120px; }
-        .company { font-size: 18px; font-weight: bold; }
-        .muted { color: #555; }
-        table { width: 100%; border-collapse: collapse; border-spacing: 0; }
         th, td { border: 1px solid #ccc; padding: 6px; }
         th { background: #f3f3f3; text-align: left; }
+        .header { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .header td { vertical-align: middle; padding: 8px 12px; }
+        .header-logo { width: 18%; text-align: center; }
+        .header-info { width: 50%; }
+        .header-meta { width: 32%; text-align: right; }
         .right { text-align: right; }
         tfoot .grand td { font-weight: bold; }
         h1 { font-size: 20px; margin: 0 0 8px; }
@@ -29,20 +25,20 @@
 <body>
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
-            <td class="header-logo">
+            <td class="header-logo" >
                 @if($settings->logoPath())
                     <img class="logo" src="{{ $settings->logoPath() }}" alt="logo">
                 @endif
             </td>
             <td class="header-info">
-                <div class="company">{{ $settings->name }}</div>
+                <div class="company" style="font-size: 18px; font-weight: bold;">{{ $settings->name }}</div>
                 <div class="muted">
                     @if($settings->address){{ $settings->address }}<br>@endif
                     @if($settings->phone)Phone: {{ $settings->phone }}<br>@endif
                     @if($settings->email)Email: {{ $settings->email }}@endif
                 </div>
             </td>
-            <td class="header-meta">
+            <td class="header-meta" >
                 <h1>{{ $title }}</h1>
                 <div><strong>Invoice No: </strong>{{ $document->number }}</div>
                 <div><strong>Date: </strong>{{ $document->document_datetime?->format('d M Y, h:i A') }}</div>
@@ -57,7 +53,7 @@
         @if($document->customer?->address){{ $document->customer->address }}@endif
     </p>
 
-    <table cellspacing="0" cellpadding="0">
+    <table class="table-body" cellspacing="0" cellpadding="0">
         <thead>
             <tr>
                 <th>#</th>
