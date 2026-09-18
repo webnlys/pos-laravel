@@ -15,6 +15,10 @@ body {
     min-height: 100dvh;
 }
 
+.form-label {
+    font-weight: 700;
+}
+
 body.nav-open {
     overflow: hidden;
 }
@@ -207,6 +211,13 @@ video {
 
 .table-wrap {
     width: 100%;
+}
+
+.table > thead,
+.table thead th,
+.table > :not(caption) > thead > * > * {
+    background-color: #e9ecef;
+    color: #212529;
 }
 
 .pagination-bar {

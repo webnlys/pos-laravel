@@ -150,9 +150,3 @@ async function save() {
     }
 }
 </script>
-
-<style scoped>
-.form-label {
-    font-weight: 700;
-}
-</style>
