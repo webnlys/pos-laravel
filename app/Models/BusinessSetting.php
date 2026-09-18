@@ -25,6 +25,13 @@ class BusinessSetting extends Model
         return $this->currencyCode().' '.number_format((float) $amount, 2);
     }
 
+    public static function documentTitle(?string $name = null): string
+    {
+        $brand = trim((string) $name);
+
+        return $brand !== '' ? $brand.' - dashboard' : 'dashboard';
+    }
+
     public function logoPath(): ?string
     {
         if (! $this->logo) {

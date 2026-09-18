@@ -84,4 +84,17 @@ class BusinessSettingTest extends TestCase
         $this->assertStringContainsString('SAR', $html);
         $this->assertStringContainsString('10.00', $html);
     }
+
+    public function test_spa_meta_title_uses_business_name(): void
+    {
+        BusinessSetting::query()->create([
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+        ]);
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('<title>Desert Shop - dashboard</title>', false)
+            ->assertSee('<meta name="title" content="Desert Shop - dashboard">', false);
+    }
 }

@@ -21,6 +21,22 @@ export const useSettingsStore = defineStore('settings', () => {
         if (data.currencies) {
             currencies.value = data.currencies;
         }
+        setDocumentTitle(name.value);
+    }
+
+    function setDocumentTitle(value) {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const brand = String(value || '').trim();
+        const title = brand ? `${brand} - dashboard` : 'dashboard';
+        document.title = title;
+
+        const meta = document.querySelector('meta[name="title"]');
+        if (meta) {
+            meta.setAttribute('content', title);
+        }
     }
 
     async function fetchSettings() {

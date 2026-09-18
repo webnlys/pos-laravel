@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{{ config('app.name', 'Simple POS') }}</title>
+    <title>{{ $metaTitle ?? config('app.name', 'Simple POS') }}</title>
+    <meta name="title" content="{{ $metaTitle ?? config('app.name', 'Simple POS') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
