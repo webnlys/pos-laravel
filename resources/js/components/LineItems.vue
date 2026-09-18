@@ -7,10 +7,10 @@
                         <th>Product</th>
                         <th style="width: 90px">Qty</th>
                         <th v-if="quotationMode" style="width: 130px">Unit</th>
-                        <th style="width: 130px">{{ showCost ? 'Unit cost' : 'Price' }}</th>
-                        <th v-if="quotationMode" style="width: 120px">Discount</th>
+                        <th style="width: 130px">{{ showCost ? 'Unit cost' : 'Price' }} ({{ settings.currency }})</th>
+                        <th v-if="quotationMode" style="width: 140px">Discount ({{ settings.currency }})</th>
                         <th v-if="quotationMode" style="width: 180px">Tax</th>
-                        <th style="width: 130px">Amount</th>
+                        <th style="width: 130px">Amount ({{ settings.currency }})</th>
                         <th style="width: 60px"></th>
                     </tr>
                 </thead>
@@ -56,7 +56,7 @@
                             </select>
                         </td>
                         <td>
-                            <input class="form-control" :value="money(amount(line))" disabled>
+                            <input class="form-control" :value="amount(line)" disabled>
                         </td>
                         <td>
                             <button type="button" class="btn btn-outline-danger" @click="remove(line)">X</button>
