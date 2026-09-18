@@ -4,8 +4,12 @@
     <meta charset="utf-8">
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; }
-        .header { width: 100%; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 16px; }
-        .logo { max-height: 60px; }
+        .header { width: 100%; border-bottom: 2px solid #111; margin-bottom: 16px; }
+        .header td { border: none; vertical-align: middle; padding: 8px 12px; }
+        .header-logo { width: 18%; text-align: center; border-right: 1px solid #111 !important; }
+        .header-info { width: 50%; border-right: 1px solid #111 !important; }
+        .header-meta { width: 32%; text-align: right; }
+        .logo { max-height: 70px; max-width: 120px; }
         .company { font-size: 18px; font-weight: bold; }
         .muted { color: #555; }
         table { width: 100%; border-collapse: collapse; border-spacing: 0; }
@@ -23,23 +27,25 @@
     </style>
 </head>
 <body>
-    <table class="header" style="border:none">
+    <table class="header" cellspacing="0" cellpadding="0">
         <tr>
-            <td style="border:none; width:70%">
+            <td class="header-logo">
                 @if($settings->logoPath())
                     <img class="logo" src="{{ $settings->logoPath() }}" alt="logo">
                 @endif
+            </td>
+            <td class="header-info">
                 <div class="company">{{ $settings->name }}</div>
                 <div class="muted">
                     @if($settings->address){{ $settings->address }}<br>@endif
-                    @if($settings->phone)Phone: {{ $settings->phone }}@endif
-                    @if($settings->email) &nbsp; Email: {{ $settings->email }}@endif
+                    @if($settings->phone)Phone: {{ $settings->phone }}<br>@endif
+                    @if($settings->email)Email: {{ $settings->email }}@endif
                 </div>
             </td>
-            <td style="border:none; text-align:right">
+            <td class="header-meta">
                 <h1>{{ $title }}</h1>
-                <div><strong>{{ $document->number }}</strong></div>
-                <div>{{ $document->document_datetime?->format('d M Y, h:i A') }}</div>
+                <div><strong>Invoice No: </strong>{{ $document->number }}</div>
+                <div><strong>Date: </strong>{{ $document->document_datetime?->format('d M Y, h:i A') }}</div>
             </td>
         </tr>
     </table>
