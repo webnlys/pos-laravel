@@ -190,7 +190,7 @@ class BusinessSettingTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Terms and Conditions', $html);
-        $this->assertStringContainsString('Payment is due within 14 days.', $html);
+        $this->assertStringContainsString('<li>Payment is due within 14 days.</li>', $html);
         $this->assertStringContainsString('htmlpagefooter', $html);
     }
 

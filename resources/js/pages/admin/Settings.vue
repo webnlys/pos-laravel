@@ -39,8 +39,29 @@
                 </div>
                 <div class="col-12">
                     <label class="form-label">Invoice terms and conditions</label>
-                    <textarea v-model="form.invoice_terms" class="form-control" rows="5" maxlength="5000"></textarea>
-                    <div class="form-text">Shown at the bottom of quotation and invoice PDFs. Leave blank to hide it.</div>
+                    <div v-for="(line, index) in termLines" :key="index" class="d-flex gap-2 mb-2 align-items-center">
+                        <input
+                            v-model="termLines[index]"
+                            class="form-control"
+                            maxlength="500"
+                            :placeholder="`Point ${index + 1}`"
+                        >
+                        <button
+                            v-if="termLines.length > 1"
+                            type="button"
+                            class="btn btn-outline-danger"
+                            @click="removeTerm(index)"
+                            aria-label="Remove term"
+                        >−</button>
+                        <button
+                            v-if="index === termLines.length - 1"
+                            type="button"
+                            class="btn btn-outline-primary"
+                            @click="addTerm"
+                            aria-label="Add term"
+                        >+</button>
+                    </div>
+                    <div class="form-text">Each line is a bullet on quotation and invoice PDFs. Press + to add another point.</div>
                 </div>
             </div>
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
@@ -57,7 +78,8 @@ import PageShell from '../../components/PageShell.vue';
 import { useSettingsStore } from '../../stores/settings';
 
 const settings = useSettingsStore();
-const form = reactive({ name: '', email: '', phone: '', address: '', currency: 'AED', tagline: '', invoice_terms: '' });
+const form = reactive({ name: '', email: '', phone: '', address: '', currency: 'AED', tagline: '' });
+const termLines = ref(['']);
 const currencyOptions = ref({ AED: 'UAE Dirham' });
 const logoFile = ref(null);
 const logoUrl = ref('');
@@ -71,7 +93,7 @@ onMounted(async () => {
     form.address = data.data.address || '';
     form.currency = data.data.currency || 'AED';
     form.tagline = data.data.tagline || '';
-    form.invoice_terms = data.data.invoice_terms || '';
+    termLines.value = splitTerms(data.data.invoice_terms);
     currencyOptions.value = data.data.currencies || currencyOptions.value;
     logoUrl.value = data.data.logo;
     settings.apply(data.data);
@@ -79,6 +101,29 @@ onMounted(async () => {
 
 function onFile(e) {
     logoFile.value = e.target.files[0];
+}
+
+function splitTerms(value) {
+    const lines = String(value || '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+    return lines.length ? lines : [''];
+}
+
+function addTerm() {
+    termLines.value.push('');
+}
+
+function removeTerm(index) {
+    termLines.value.splice(index, 1);
+    if (!termLines.value.length) {
+        termLines.value = [''];
+    }
+}
+
+function joinedTerms() {
+    return termLines.value.map((line) => line.trim()).filter(Boolean).join('\n');
 }
 
 async function save() {
@@ -91,13 +136,13 @@ async function save() {
         payload.append('address', form.address || '');
         payload.append('currency', form.currency || 'AED');
         payload.append('tagline', form.tagline || '');
-        payload.append('invoice_terms', form.invoice_terms || '');
+        payload.append('invoice_terms', joinedTerms());
         if (logoFile.value) payload.append('logo', logoFile.value);
         const { data } = await axios.post('/api/admin/settings', payload);
         logoUrl.value = data.data.logo;
         form.currency = data.data.currency;
         form.tagline = data.data.tagline || '';
-        form.invoice_terms = data.data.invoice_terms || '';
+        termLines.value = splitTerms(data.data.invoice_terms);
         settings.apply(data.data);
         await Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
     } catch (e) {

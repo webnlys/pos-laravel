@@ -17,7 +17,9 @@
         .tagline-middle { text-align: center; color: #555; margin: 28px 0 12px; }
         .terms-footer { color: #555; font-size: 12px; border-top: 1px solid #ccc; padding-top: 6px; }
         .terms-footer strong { display: block; margin-bottom: 4px; color: #222; font-size: 13px; }
-        .terms-footer .terms-body { padding-left: 14px; margin-top: 6px; }
+        .terms-footer .terms-body { padding-left: 4px; margin-top: 6px; }
+        .terms-list { margin: 6px 0 0 18px; padding: 0; }
+        .terms-list li { margin: 0 0 4px; }
     </style>
 </head>
 <body>
@@ -109,10 +111,14 @@
     @if($document->notes)
         <p><strong>Notes:</strong> {{ $document->notes }}</p>
     @endif
-    @if($settings->taglineText())
+    @if(count($settings->invoiceTermsLines()))
     <div class="terms-footer">
         <strong>Terms and Conditions</strong> <br/>
-        <div class="terms-body">{!! nl2br(e($settings->invoiceTermsText())) !!}</div>
+        <ul class="terms-list terms-body">
+            @foreach($settings->invoiceTermsLines() as $line)
+                <li>{{ $line }}</li>
+            @endforeach
+        </ul>
     </div>
     @endif
     @if($settings->invoiceTermsText())

@@ -37,6 +37,20 @@ class BusinessSetting extends Model
         return $terms !== '' ? $terms : null;
     }
 
+    /**
+     * @return list<string>
+     */
+    public function invoiceTermsLines(): array
+    {
+        if (! $this->invoiceTermsText()) {
+            return [];
+        }
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $this->invoice_terms) ?: [];
+
+        return array_values(array_filter(array_map('trim', $lines), fn (string $line) => $line !== ''));
+    }
+
     public function formatMoney(mixed $amount): string
     {
         return $this->currencyCode().' '.number_format((float) $amount, 2);
