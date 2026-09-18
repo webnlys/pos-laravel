@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\MoneyWords;
 use Illuminate\Database\Eloquent\Model;
 
 class BusinessSetting extends Model
@@ -39,6 +40,11 @@ class BusinessSetting extends Model
     public function formatMoney(mixed $amount): string
     {
         return $this->currencyCode().' '.number_format((float) $amount, 2);
+    }
+
+    public function amountInWords(mixed $amount): string
+    {
+        return MoneyWords::convert($amount, $this->currencyCode());
     }
 
     public static function documentTitle(?string $name = null): string

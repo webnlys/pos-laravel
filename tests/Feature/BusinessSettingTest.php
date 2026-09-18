@@ -117,6 +117,7 @@ class BusinessSettingTest extends TestCase
 
         $this->assertStringContainsString('SAR', $html);
         $this->assertStringContainsString('10.00', $html);
+        $this->assertStringContainsString('Ten Saudi Riyals Only', $html);
         $this->assertStringNotContainsString('Thank you for your business!', $html);
     }
 

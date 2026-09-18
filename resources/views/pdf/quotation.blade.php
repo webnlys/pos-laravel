@@ -15,8 +15,9 @@
         tfoot .grand td { font-weight: bold; }
         h1 { font-size: 20px; margin: 0 0 8px; }
         .tagline-middle { text-align: center; color: #555; margin: 28px 0 12px; }
-        .terms-footer { color: #555; font-size: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
-        .terms-footer strong { display: block; margin-bottom: 4px; color: #222; }
+        .terms-footer { color: #555; font-size: 12px; border-top: 1px solid #ccc; padding-top: 6px; }
+        .terms-footer strong { display: block; margin-bottom: 4px; color: #222; font-size: 13px; }
+        .terms-footer .terms-body { padding-left: 14px; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -99,18 +100,24 @@
         </tfoot>
     </table>
 
+    {{-- amount in words --}}
+        <p>
+            <strong>Amount in words:</strong>
+            {{ $settings->amountInWords($document->total) }}
+        </p>
+
     @if($document->notes)
         <p><strong>Notes:</strong> {{ $document->notes }}</p>
     @endif
     @if($settings->taglineText())
-        <p class="tagline-middle">{!! nl2br(e($settings->taglineText())) !!}</p>
+    <div class="terms-footer">
+        <strong>Terms and Conditions</strong> <br/>
+        <div class="terms-body">{!! nl2br(e($settings->invoiceTermsText())) !!}</div>
+    </div>
     @endif
     @if($settings->invoiceTermsText())
         <htmlpagefooter name="invoiceFooter">
-            <div class="terms-footer">
-                <strong>Terms and Conditions</strong>
-                {!! nl2br(e($settings->invoiceTermsText())) !!}
-            </div>
+            <p class="tagline-middle">{!! nl2br(e($settings->taglineText())) !!}</p>
         </htmlpagefooter>
         <sethtmlpagefooter name="invoiceFooter" value="on" />
     @endif
