@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\BusinessSetting;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Quotation;
 use App\Models\User;
@@ -55,6 +56,8 @@ class BusinessSettingTest extends TestCase
             'name' => 'Desert Shop',
             'currency' => 'SAR',
         ]);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Walk-in']);
         $product = Product::query()->create([
             'name' => 'Panel',
             'sku' => 'PN-CUR',
@@ -64,9 +67,8 @@ class BusinessSettingTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->postJson('/api/guest/quotations', [
-            'email' => 'currency@example.test',
-            'phone' => '01500000001',
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 10],
             ],

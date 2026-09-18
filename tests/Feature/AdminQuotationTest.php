@@ -70,54 +70,79 @@ class AdminQuotationTest extends TestCase
         ]);
     }
 
-    public function test_customer_cannot_create_admin_quotations(): void
+    public function test_admin_can_create_quotation_with_typed_new_product_name(): void
     {
-        $customer = Customer::query()->create([
-            'name' => 'Walk-in',
-            'email' => 'walkin@example.test',
-        ]);
-        $user = User::factory()->create([
-            'role' => 'customer',
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Walk-in']);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
             'customer_id' => $customer->id,
+            'items' => [
+                [
+                    'product_name' => 'Custom curtain',
+                    'quantity' => 1,
+                    'unit_price' => 75,
+                ],
+            ],
+        ])->assertCreated()
+            ->assertJsonPath('data.total', 75);
+
+        $this->assertDatabaseHas('products', [
+            'name' => 'Custom curtain',
+            'sale_price' => 75,
+            'is_active' => true,
         ]);
+        $this->assertDatabaseHas('quotation_items', [
+            'product_name' => 'Custom curtain',
+            'unit_price' => 75,
+        ]);
+    }
+
+    public function test_typed_product_name_reuses_existing_product(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Acme']);
+        $product = Product::query()->create([
+            'name' => 'SALA DOWN',
+            'sku' => 'SD-001',
+            'sale_price' => 4500,
+            'cost_price' => 3200,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                [
+                    'product_name' => 'sala down',
+                    'quantity' => 1,
+                    'unit_price' => 4300,
+                ],
+            ],
+        ])->assertCreated();
+
+        $this->assertEquals(1, Product::query()->count());
+        $this->assertDatabaseHas('quotation_items', [
+            'product_id' => $product->id,
+            'product_name' => 'SALA DOWN',
+            'unit_price' => 4300,
+        ]);
+    }
+
+    public function test_non_admin_cannot_create_admin_quotations(): void
+    {
+        $user = User::factory()->create(['role' => 'customer']);
 
         $this->actingAs($user)
             ->postJson('/api/admin/quotations', [
-                'customer_id' => $customer->id,
-                'items' => [['product_id' => 1, 'quantity' => 1, 'unit_price' => 10]],
+                'customer_id' => 1,
+                'items' => [['product_name' => 'X', 'quantity' => 1, 'unit_price' => 10]],
             ])
             ->assertForbidden();
     }
 
-    public function test_customer_can_create_own_quotation(): void
-    {
-        $customer = Customer::query()->create([
-            'name' => 'Portal User',
-            'email' => 'portal@example.test',
-        ]);
-        $user = User::factory()->create([
-            'role' => 'customer',
-            'customer_id' => $customer->id,
-        ]);
-        $product = Product::query()->create([
-            'name' => 'Cable',
-            'sku' => 'CB-001',
-            'sale_price' => 40,
-            'cost_price' => 10,
-            'stock_qty' => 0,
-            'is_active' => true,
-        ]);
-
-        $this->actingAs($user)->postJson('/api/customer/quotations', [
-            'items' => [
-                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 40, 'discount' => 5],
-            ],
-        ])->assertCreated()
-            ->assertJsonPath('data.customer_id', $customer->id)
-            ->assertJsonPath('data.total', 35);
-    }
-
-    public function test_admin_can_create_customer_and_attach_them_to_a_quotation(): void
+    public function test_admin_can_create_customer_with_name_only(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $product = Product::query()->create([
@@ -133,21 +158,46 @@ class AdminQuotationTest extends TestCase
             'name' => 'Walk-in Buyer',
             'phone' => '01900000000',
             'email' => 'walkin.buyer@example.test',
-            'password' => 'secret12',
             'address' => 'Dhaka',
         ]);
 
         $customerResponse->assertCreated()
             ->assertJsonPath('data.name', 'Walk-in Buyer');
 
-        $customerId = $customerResponse->json('data.id');
+        $this->assertDatabaseMissing('users', [
+            'email' => 'walkin.buyer@example.test',
+        ]);
+
+        $nameOnly = $this->actingAs($admin)->postJson('/api/admin/customers', [
+            'name' => 'Cash Customer',
+        ]);
+
+        $nameOnly->assertCreated()
+            ->assertJsonPath('data.name', 'Cash Customer');
 
         $this->actingAs($admin)->postJson('/api/admin/quotations', [
-            'customer_id' => $customerId,
+            'customer_id' => $customerResponse->json('data.id'),
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 80],
             ],
         ])->assertCreated()
-            ->assertJsonPath('data.customer_id', $customerId);
+            ->assertJsonPath('data.customer_id', $customerResponse->json('data.id'));
+    }
+
+    public function test_customer_login_is_rejected(): void
+    {
+        User::factory()->create([
+            'email' => 'old.customer@example.test',
+            'password' => 'password',
+            'role' => 'customer',
+        ]);
+
+        $this->postJson('/api/login', [
+            'email' => 'old.customer@example.test',
+            'password' => 'password',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+
+        $this->assertGuest();
     }
 }

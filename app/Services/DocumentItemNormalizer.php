@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class DocumentItemNormalizer
 {
+    public function __construct(private ProductService $products) {}
+
     /**
      * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>
@@ -23,11 +24,11 @@ class DocumentItemNormalizer
         $normalized = [];
 
         foreach ($items as $index => $item) {
-            $product = Product::query()->find($item['product_id'] ?? null);
+            $product = $this->products->resolveFromLine($item);
 
             if (! $product) {
                 throw ValidationException::withMessages([
-                    "items.$index.product_id" => 'The selected product is invalid.',
+                    "items.$index.product_id" => 'Type or select a product.',
                 ]);
             }
 

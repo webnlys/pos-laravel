@@ -11,23 +11,10 @@ use App\Http\Controllers\Api\Admin\SaleController;
 use App\Http\Controllers\Api\Admin\SupplierController;
 use App\Http\Controllers\Api\Admin\TaxController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\Customer\ProductController as CustomerProductController;
-use App\Http\Controllers\Api\Customer\QuotationController as CustomerQuotationController;
-use App\Http\Controllers\Api\Customer\SaleController as CustomerSaleController;
-use App\Http\Controllers\Api\GuestController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/business', [GuestController::class, 'business']);
-
-Route::middleware('throttle:30,1')->prefix('guest')->group(function () {
-    Route::get('products', [GuestController::class, 'products']);
-    Route::get('taxes', [GuestController::class, 'taxes']);
-    Route::post('quotations', [GuestController::class, 'store']);
-    Route::get('quotations/{quotation}/pdf', [GuestController::class, 'pdf'])
-        ->middleware('signed')
-        ->name('guest.quotations.pdf');
-});
+Route::get('/business', [BusinessSettingController::class, 'publicShow']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -60,14 +47,5 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('stock-summary', [ReportController::class, 'stockSummary'])->name('stock-summary');
             Route::get('valuation', [ReportController::class, 'valuation'])->name('valuation');
         });
-    });
-
-    Route::prefix('customer')->middleware('customer')->name('customer.')->group(function () {
-        Route::get('products', [CustomerProductController::class, 'index'])->name('products.index');
-        Route::apiResource('quotations', CustomerQuotationController::class);
-        Route::post('quotations/{quotation}/convert', [CustomerQuotationController::class, 'convert'])->name('quotations.convert');
-        Route::get('quotations/{quotation}/pdf', [CustomerQuotationController::class, 'pdf'])->name('quotations.pdf');
-        Route::apiResource('sales', CustomerSaleController::class);
-        Route::get('sales/{sale}/pdf', [CustomerSaleController::class, 'pdf'])->name('sales.pdf');
     });
 });

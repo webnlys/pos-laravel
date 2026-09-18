@@ -7,16 +7,12 @@
                     <input v-model="form.name" class="form-control" required>
                 </div>
                 <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input v-model="form.email" type="email" class="form-control">
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Phone</label>
                     <input v-model="form.phone" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Login email</label>
-                    <input v-model="form.email" type="email" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Password {{ id ? '(leave blank to keep; set one to enable login)' : '' }}</label>
-                    <input v-model="form.password" type="password" class="form-control" :required="!id">
                 </div>
                 <div class="col-12">
                     <label class="form-label">Address</label>
@@ -39,21 +35,24 @@ const route = useRoute();
 const router = useRouter();
 const id = route.params.id;
 const error = ref('');
-const form = reactive({ name: '', phone: '', email: '', password: '', address: '' });
+const form = reactive({ name: '', phone: '', email: '', address: '' });
 
 onMounted(async () => {
     if (!id) return;
     const { data } = await axios.get(`/api/admin/customers/${id}`);
-    Object.assign(form, data.data, { password: '' });
+    Object.assign(form, {
+        name: data.data.name || '',
+        phone: data.data.phone || '',
+        email: data.data.email || '',
+        address: data.data.address || '',
+    });
 });
 
 async function save() {
     error.value = '';
     try {
-        const payload = { ...form };
-        if (id && !payload.password) delete payload.password;
-        if (id) await axios.put(`/api/admin/customers/${id}`, payload);
-        else await axios.post('/api/admin/customers', payload);
+        if (id) await axios.put(`/api/admin/customers/${id}`, form);
+        else await axios.post('/api/admin/customers', form);
         router.push({ name: 'admin.customers' });
     } catch (e) {
         error.value = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Save failed';

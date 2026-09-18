@@ -25,18 +25,6 @@ const routes = [
             { path: 'settings', name: 'admin.settings', component: () => import('../pages/admin/Settings.vue') },
         ],
     },
-    {
-        path: '/customer',
-        component: () => import('../layouts/CustomerLayout.vue'),
-        meta: { auth: true, role: 'customer' },
-        children: [
-            { path: '', redirect: { name: 'customer.quotations' } },
-            { path: 'quotations', name: 'customer.quotations', component: () => import('../pages/customer/quotations/Index.vue') },
-            { path: 'quotations/create', name: 'customer.quotations.create', component: () => import('../pages/customer/quotations/Form.vue') },
-            { path: 'quotations/:id/edit', name: 'customer.quotations.edit', component: () => import('../pages/customer/quotations/Form.vue') },
-        ],
-    },
-    { path: '/guest/quotation', name: 'guest.quotation', component: () => import('../pages/guest/Quotation.vue'), meta: { guest: true } },
     { path: '/', redirect: '/login' },
 ];
 
@@ -51,16 +39,21 @@ router.beforeEach(async (to) => {
         await auth.fetchUser();
     }
 
+    if (auth.user && !auth.isAdmin) {
+        await auth.logout();
+        return { name: 'login' };
+    }
+
     if (to.meta.auth && !auth.user) {
         return { name: 'login' };
     }
 
     if (to.meta.guest && auth.user) {
-        return auth.isAdmin ? { name: 'admin.quotations' } : { name: 'customer.quotations' };
+        return { name: 'admin.quotations' };
     }
 
     if (to.meta.role && auth.user && auth.user.role !== to.meta.role) {
-        return auth.isAdmin ? { name: 'admin.quotations' } : { name: 'customer.quotations' };
+        return { name: 'admin.quotations' };
     }
 
     return true;

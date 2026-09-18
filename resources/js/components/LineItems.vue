@@ -16,10 +16,14 @@
                 <tbody>
                     <tr v-for="line in items" :key="line.key">
                         <td>
-                            <select v-model.number="line.product_id" class="form-select" @change="onProduct(line)">
-                                <option :value="0">Select product</option>
-                                <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }} ({{ p.sku }})</option>
-                            </select>
+                            <ProductSuggest
+                                :product-id="line.product_id"
+                                :product-name="line.product_name"
+                                :products="products"
+                                :allow-create="allowCreate"
+                                :search-url="searchUrl"
+                                @select="(product) => onProduct(line, product)"
+                            />
                         </td>
                         <td>
                             <input v-model.number="line.quantity" type="number" min="1" class="form-control">
@@ -52,10 +56,16 @@
             <article v-for="(line, index) in items" :key="line.key" class="line-card">
                 <strong class="d-block mb-2">Item {{ index + 1 }}</strong>
                 <label class="form-label">Product</label>
-                <select v-model.number="line.product_id" class="form-select mb-2" @change="onProduct(line)">
-                    <option :value="0">Select product</option>
-                    <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }} ({{ p.sku }})</option>
-                </select>
+                <div class="mb-2">
+                    <ProductSuggest
+                        :product-id="line.product_id"
+                        :product-name="line.product_name"
+                        :products="products"
+                        :allow-create="allowCreate"
+                        :search-url="searchUrl"
+                        @select="(product) => onProduct(line, product)"
+                    />
+                </div>
                 <div class="row g-2">
                     <div class="col-4">
                         <label class="form-label">Qty</label>
@@ -91,6 +101,7 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
+import ProductSuggest from './ProductSuggest.vue';
 import { lineAmount } from '../utils/quotationMath';
 import { useSettingsStore } from '../stores/settings';
 
@@ -100,6 +111,8 @@ const props = defineProps({
     taxes: { type: Array, default: () => [] },
     showCost: { type: Boolean, default: false },
     quotationMode: { type: Boolean, default: false },
+    allowCreate: { type: Boolean, default: false },
+    searchUrl: { type: String, default: '' },
 });
 
 const isDesktop = ref(typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
@@ -124,16 +137,21 @@ function onBreakpoint(event) {
     isDesktop.value = event.matches;
 }
 
-function add() {
-    props.items.push({
+function emptyLine() {
+    return {
         key: Date.now() + Math.random(),
         product_id: 0,
+        product_name: '',
         quantity: 1,
         unit_price: 0,
         unit_cost: 0,
         discount: 0,
         tax_id: null,
-    });
+    };
+}
+
+function add() {
+    props.items.push(emptyLine());
 }
 
 function remove(line) {
@@ -143,13 +161,15 @@ function remove(line) {
     }
 }
 
-function onProduct(line) {
-    const p = props.products.find((x) => x.id === Number(line.product_id));
-    if (!p) {
-        return;
+function onProduct(line, product) {
+    const nextId = Number(product?.id || 0);
+    const changedProduct = nextId !== Number(line.product_id);
+    line.product_id = nextId;
+    line.product_name = product?.name || '';
+    if (changedProduct && nextId && product.sale_price != null) {
+        line.unit_price = product.sale_price;
+        line.unit_cost = product.cost_price;
     }
-    line.unit_price = p.sale_price;
-    line.unit_cost = p.cost_price;
 }
 
 function amount(line) {
@@ -161,4 +181,10 @@ function amount(line) {
     }
     return (Number(line.quantity) || 0) * (Number(line.unit_price) || 0);
 }
+
+function hasProduct(line) {
+    return Boolean(line.product_id || (line.product_name && String(line.product_name).trim()));
+}
+
+defineExpose({ hasProduct });
 </script>

@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\Storage;
 
 class BusinessSettingController extends Controller
 {
+    public function publicShow()
+    {
+        return (new BusinessSettingResource($this->settings()))
+            ->response()
+            ->setStatusCode(200);
+    }
+
     public function show()
     {
         return new BusinessSettingResource($this->settings());

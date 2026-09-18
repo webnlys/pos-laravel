@@ -7,7 +7,6 @@ export const useAuthStore = defineStore('auth', () => {
     const loading = ref(false);
 
     const isAdmin = computed(() => user.value?.role === 'admin');
-    const isCustomer = computed(() => user.value?.role === 'customer');
 
     async function fetchUser() {
         try {
@@ -33,9 +32,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function logout() {
-        await axios.post('/api/logout');
-        user.value = null;
+        try {
+            await axios.post('/api/logout');
+        } finally {
+            user.value = null;
+        }
     }
 
-    return { user, loading, isAdmin, isCustomer, fetchUser, login, logout };
+    return { user, loading, isAdmin, fetchUser, login, logout };
 });

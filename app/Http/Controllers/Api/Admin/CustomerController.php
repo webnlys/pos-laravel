@@ -6,10 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CustomerRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
-use App\Models\User;
 use App\Repositories\CustomerRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -22,23 +20,7 @@ class CustomerController extends Controller
 
     public function store(CustomerRequest $request)
     {
-        $customer = DB::transaction(function () use ($request) {
-            $data = $request->validated();
-            $password = $data['password'];
-            unset($data['password']);
-
-            $customer = Customer::query()->create($data);
-
-            User::query()->create([
-                'name' => $customer->name,
-                'email' => $customer->email,
-                'password' => $password,
-                'role' => 'customer',
-                'customer_id' => $customer->id,
-            ]);
-
-            return $customer;
-        });
+        $customer = Customer::query()->create($request->validated());
 
         return new CustomerResource($customer);
     }
@@ -50,30 +32,7 @@ class CustomerController extends Controller
 
     public function update(CustomerRequest $request, Customer $customer)
     {
-        $data = $request->validated();
-        $password = $data['password'] ?? null;
-        unset($data['password']);
-
-        $customer->update($data);
-
-        if ($customer->user) {
-            $payload = [
-                'name' => $customer->name,
-                'email' => $customer->email,
-            ];
-            if ($password) {
-                $payload['password'] = $password;
-            }
-            $customer->user->update($payload);
-        } elseif ($password) {
-            User::query()->create([
-                'name' => $customer->name,
-                'email' => $customer->email,
-                'password' => $password,
-                'role' => 'customer',
-                'customer_id' => $customer->id,
-            ]);
-        }
+        $customer->update($request->validated());
 
         return new CustomerResource($customer);
     }

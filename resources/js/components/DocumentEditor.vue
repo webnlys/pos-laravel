@@ -9,7 +9,7 @@
                         <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
                     </select>
                 </div>
-                <div v-else-if="role === 'admin'" class="col-md-4">
+                <div v-else class="col-md-4">
                     <label class="form-label">Customer</label>
                     <div class="field-with-action">
                         <select v-model.number="form.customer_id" class="form-select" required>
@@ -46,6 +46,8 @@
                 :taxes="taxes"
                 :show-cost="kind === 'purchase'"
                 :quotation-mode="kind === 'quotation'"
+                allow-create
+                search-url="/api/admin/products"
             />
 
             <div class="row mt-3">
@@ -85,16 +87,12 @@
                             <input v-model="customerForm.name" class="form-control" required>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input v-model="customerForm.email" type="email" class="form-control">
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Phone</label>
                             <input v-model="customerForm.phone" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Login email</label>
-                            <input v-model="customerForm.email" type="email" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input v-model="customerForm.password" type="password" class="form-control" required minlength="6">
                         </div>
                         <div class="mb-0">
                             <label class="form-label">Address</label>
@@ -122,7 +120,6 @@ import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
     kind: { type: String, required: true },
-    role: { type: String, default: 'admin' },
     id: { type: [String, Number], default: null },
     title: { type: String, required: true },
 });
@@ -145,18 +142,16 @@ const form = reactive({
     document_datetime: new Date().toISOString().slice(0, 16),
     discount: 0,
     notes: '',
-    items: [{ key: 1, product_id: 0, quantity: 1, unit_price: 0, unit_cost: 0, discount: 0, tax_id: null }],
+    items: [{ key: 1, product_id: 0, product_name: '', quantity: 1, unit_price: 0, unit_cost: 0, discount: 0, tax_id: null }],
 });
-const customerForm = reactive({ name: '', phone: '', email: '', password: '', address: '' });
+const customerForm = reactive({ name: '', phone: '', email: '', address: '' });
 
-const base = props.role === 'admin' ? '/api/admin' : '/api/customer';
-const resource = `${base}/${props.kind === 'purchase' ? 'purchases' : props.kind === 'sale' ? 'sales' : 'quotations'}`;
+const resource = `/api/admin/${props.kind === 'purchase' ? 'purchases' : props.kind === 'sale' ? 'sales' : 'quotations'}`;
 
 onMounted(async () => {
-    const productUrl = props.role === 'admin' ? '/api/admin/products' : '/api/customer/products';
     const [{ data: productData }] = await Promise.all([
-        axios.get(productUrl, { params: { per_page: 100 } }),
-        props.role === 'admin' && props.kind !== 'purchase'
+        axios.get('/api/admin/products', { params: { per_page: 100 } }),
+        props.kind !== 'purchase'
             ? axios.get('/api/admin/customers', { params: { per_page: 100 } }).then((r) => { customers.value = r.data.data; })
             : Promise.resolve(),
         props.kind === 'purchase'
@@ -179,6 +174,7 @@ onMounted(async () => {
         form.items = (doc.items || []).map((item, i) => ({
             key: i + 1,
             product_id: item.product_id,
+            product_name: item.product_name || '',
             quantity: item.quantity,
             unit_price: Number(item.unit_price || item.unit_cost || 0),
             unit_cost: Number(item.unit_cost || 0),
@@ -197,7 +193,7 @@ function money(value) {
 }
 
 function emptyCustomerForm() {
-    Object.assign(customerForm, { name: '', phone: '', email: '', password: '', address: '' });
+    Object.assign(customerForm, { name: '', phone: '', email: '', address: '' });
 }
 
 function openCustomerModal() {
@@ -229,9 +225,13 @@ async function saveCustomer() {
     }
 }
 
+function filledItems() {
+    return form.items.filter((item) => (item.product_id || String(item.product_name || '').trim()) && item.quantity);
+}
+
 async function previewTax() {
     if (props.kind === 'purchase') return;
-    const items = form.items.filter((i) => i.product_id && i.quantity);
+    const items = filledItems();
     if (!items.length) return;
     const { data } = await axios.post('/api/tax-preview', {
         items: items.map((i) => ({
@@ -251,8 +251,9 @@ async function save() {
         const payload = {
             document_datetime: form.document_datetime,
             notes: form.notes,
-            items: form.items.filter((i) => i.product_id).map((i) => ({
-                product_id: i.product_id,
+            items: filledItems().map((i) => ({
+                product_id: i.product_id || null,
+                product_name: i.product_name || null,
                 quantity: i.quantity,
                 unit_price: i.unit_price,
                 unit_cost: i.unit_cost,
@@ -262,14 +263,12 @@ async function save() {
         };
         if (props.kind !== 'quotation') payload.discount = form.discount || 0;
         if (props.kind === 'purchase') payload.supplier_id = form.supplier_id;
-        else if (props.role === 'admin') payload.customer_id = form.customer_id;
+        else payload.customer_id = form.customer_id;
 
         if (props.id) await axios.put(`${resource}/${props.id}`, payload);
         else await axios.post(resource, payload);
 
-        const listName = props.role === 'admin'
-            ? (props.kind === 'purchase' ? 'admin.purchases' : props.kind === 'sale' ? 'admin.sales' : 'admin.quotations')
-            : (props.kind === 'sale' ? 'customer.sales' : 'customer.quotations');
+        const listName = props.kind === 'purchase' ? 'admin.purchases' : props.kind === 'sale' ? 'admin.sales' : 'admin.quotations';
         router.push({ name: listName });
     } catch (e) {
         error.value = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Save failed';

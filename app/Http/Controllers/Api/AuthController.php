@@ -26,9 +26,24 @@ class AuthController extends Controller
             ]);
         }
 
-        $request->session()->regenerate();
+        if (! $request->user()?->isAdmin()) {
+            Auth::guard('web')->logout();
 
-        return new UserResource($request->user()->load('customer'));
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+
+            throw ValidationException::withMessages([
+                'email' => 'Invalid credentials.',
+            ]);
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
+        return new UserResource($request->user());
     }
 
     public function logout(Request $request)
@@ -42,7 +57,7 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return new UserResource($request->user()->load('customer'));
+        return new UserResource($request->user());
     }
 
     public function taxes()

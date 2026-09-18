@@ -13,17 +13,29 @@ class CustomerRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $email = $this->input('email');
+        $phone = $this->input('phone');
+        $address = $this->input('address');
+
+        $this->merge([
+            'email' => is_string($email) && trim($email) === '' ? null : $email,
+            'phone' => is_string($phone) && trim($phone) === '' ? null : $phone,
+            'address' => is_string($address) && trim($address) === '' ? null : $address,
+        ]);
+    }
+
     public function rules(): array
     {
         $customer = $this->route('customer');
-        $userId = $customer instanceof Customer ? $customer->user?->id : null;
+        $id = $customer instanceof Customer ? $customer->id : $customer;
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('customers', 'email')->ignore($id)],
             'address' => ['nullable', 'string'],
-            'password' => [$this->isMethod('post') ? 'required' : 'nullable', 'string', 'min:6'],
         ];
     }
 }

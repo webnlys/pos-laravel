@@ -189,13 +189,6 @@ video {
     max-width: 420px;
 }
 
-.guest-page {
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding-top: calc(0.75rem + env(safe-area-inset-top));
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
-}
-
 .filter-form {
     display: flex;
     flex-wrap: wrap;
@@ -304,6 +297,40 @@ video {
 .field-with-action .form-select {
     min-width: 0;
     flex: 1;
+}
+
+.product-suggest {
+    position: relative;
+}
+
+.product-suggest-list {
+    margin: 0;
+    padding: 0.25rem 0;
+    list-style: none;
+    max-height: 16rem;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.product-suggest-list li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+}
+
+.product-suggest-list li.active,
+.product-suggest-list li:hover {
+    background: #eff6ff;
+}
+
+.product-suggest-list li small {
+    flex-shrink: 0;
 }
 
 .modal-dialog {

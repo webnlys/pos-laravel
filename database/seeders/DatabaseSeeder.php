@@ -24,22 +24,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $customer = Customer::query()->updateOrCreate(
+        Customer::query()->updateOrCreate(
             ['email' => 'demo.customer@simplepos.test'],
             [
                 'name' => 'Demo Customer',
                 'phone' => '01700000000',
                 'address' => 'Dhaka, Bangladesh',
-            ]
-        );
-
-        User::query()->updateOrCreate(
-            ['email' => 'demo.customer@simplepos.test'],
-            [
-                'name' => $customer->name,
-                'password' => 'password',
-                'role' => 'customer',
-                'customer_id' => $customer->id,
             ]
         );
 

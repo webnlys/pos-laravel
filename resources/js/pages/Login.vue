@@ -38,9 +38,6 @@
                     {{ auth.loading ? 'Signing in...' : 'Login' }}
                 </button>
             </form>
-            <button type="button" class="btn btn-outline-secondary w-100 mt-3" @click="router.push({ name: 'guest.quotation' })">
-                Guest mode
-            </button>
         </div>
     </div>
 </template>
@@ -60,8 +57,8 @@ const error = ref('');
 async function submit() {
     error.value = '';
     try {
-        const user = await auth.login(email.value, password.value);
-        router.push(user.role === 'admin' ? { name: 'admin.quotations' } : { name: 'customer.quotations' });
+        await auth.login(email.value, password.value);
+        router.push({ name: 'admin.quotations' });
     } catch (e) {
         error.value = e.response?.data?.message || e.response?.data?.errors?.email?.[0] || 'Login failed';
     }
