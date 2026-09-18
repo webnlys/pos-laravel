@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\ReportController;
 use App\Http\Controllers\Api\Admin\SaleController;
 use App\Http\Controllers\Api\Admin\SupplierController;
 use App\Http\Controllers\Api\Admin\TaxController;
+use App\Http\Controllers\Api\Admin\UnitController;
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('customers', CustomerController::class);
         Route::apiResource('suppliers', SupplierController::class);
         Route::apiResource('taxes', TaxController::class);
+        Route::apiResource('units', UnitController::class);
         Route::apiResource('payments', PaymentController::class);
         Route::apiResource('purchases', PurchaseController::class);
         Route::apiResource('sales', SaleController::class);

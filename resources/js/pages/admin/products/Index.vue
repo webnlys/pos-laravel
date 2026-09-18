@@ -13,6 +13,7 @@
                     <tr>
                         <th>Name</th>
                         <th>SKU</th>
+                        <th>Unit</th>
                         <th>Sale</th>
                         <th>Cost</th>
                         <th>Status</th>
@@ -23,6 +24,7 @@
                     <tr v-for="row in rows" :key="row.id">
                         <td data-label="Name">{{ row.name }}</td>
                         <td data-label="SKU">{{ row.sku }}</td>
+                        <td data-label="Unit">{{ row.unit_name || '—' }}</td>
                         <td data-label="Sale">{{ money(row.sale_price) }}</td>
                         <td data-label="Cost">{{ money(row.cost_price) }}</td>
                         <td data-label="Status">

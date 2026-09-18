@@ -12,6 +12,7 @@
                         <tr>
                             <th>Product</th>
                             <th>Qty</th>
+                            <th>Unit</th>
                             <th>Price</th>
                             <th>Discount</th>
                             <th>Tax</th>
@@ -22,6 +23,7 @@
                         <tr v-for="item in doc.items" :key="item.id">
                             <td data-label="Product">{{ item.product_name }}</td>
                             <td data-label="Qty">{{ item.quantity }}</td>
+                            <td data-label="Unit">{{ item.unit_name || '—' }}</td>
                             <td data-label="Price">{{ money(item.unit_price) }}</td>
                             <td data-label="Discount">{{ money(item.discount) }}</td>
                             <td data-label="Tax">{{ item.tax_name ? `${item.tax_name} (${item.tax_rate_percent}%)` : '—' }}</td>

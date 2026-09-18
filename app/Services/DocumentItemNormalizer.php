@@ -7,7 +7,10 @@ use Illuminate\Validation\ValidationException;
 
 class DocumentItemNormalizer
 {
-    public function __construct(private ProductService $products) {}
+    public function __construct(
+        private ProductService $products,
+        private UnitService $units,
+    ) {}
 
     /**
      * @param  array<int, array<string, mixed>>  $items
@@ -39,6 +42,11 @@ class DocumentItemNormalizer
                 ]);
             }
 
+            $unit = $this->units->resolve(
+                isset($item['unit_id']) ? (int) $item['unit_id'] : null,
+                $item['unit_name'] ?? null,
+            ) ?? $product->unit;
+
             $unitPrice = array_key_exists('unit_price', $item)
                 ? (float) $item['unit_price']
                 : (float) ($useSalePrice ? $product->sale_price : $product->cost_price);
@@ -50,6 +58,8 @@ class DocumentItemNormalizer
                 'product' => $product,
                 'product_id' => $product->id,
                 'product_name' => $product->name,
+                'unit_id' => $unit?->id,
+                'unit_name' => $unit?->name,
                 'quantity' => $quantity,
                 'unit_price' => round($unitPrice, 2),
                 'unit_cost' => round($unitCost, 2),

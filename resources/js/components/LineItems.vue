@@ -6,6 +6,7 @@
                     <tr>
                         <th>Product</th>
                         <th style="width: 90px">Qty</th>
+                        <th v-if="quotationMode" style="width: 130px">Unit</th>
                         <th style="width: 130px">{{ showCost ? 'Unit cost' : 'Price' }}</th>
                         <th v-if="quotationMode" style="width: 120px">Discount</th>
                         <th v-if="quotationMode" style="width: 180px">Tax</th>
@@ -27,6 +28,19 @@
                         </td>
                         <td>
                             <input v-model.number="line.quantity" type="number" min="1" class="form-control">
+                        </td>
+                        <td v-if="quotationMode">
+                            <NameSuggest
+                                :item-id="line.unit_id"
+                                :item-name="line.unit_name"
+                                :items="units"
+                                allow-create
+                                search-url="/api/admin/units"
+                                create-url="/api/admin/units"
+                                placeholder="Unit"
+                                noun="unit"
+                                @select="(unit) => onUnit(line, unit)"
+                            />
                         </td>
                         <td>
                             <input v-if="showCost" v-model.number="line.unit_cost" type="number" min="0" step="0.01" class="form-control">
@@ -71,7 +85,21 @@
                         <label class="form-label">Qty</label>
                         <input v-model.number="line.quantity" type="number" min="1" class="form-control">
                     </div>
-                    <div class="col-8">
+                    <div v-if="quotationMode" class="col-4">
+                        <label class="form-label">Unit</label>
+                        <NameSuggest
+                            :item-id="line.unit_id"
+                            :item-name="line.unit_name"
+                            :items="units"
+                            allow-create
+                            search-url="/api/admin/units"
+                            create-url="/api/admin/units"
+                            placeholder="Unit"
+                            noun="unit"
+                            @select="(unit) => onUnit(line, unit)"
+                        />
+                    </div>
+                    <div :class="quotationMode ? 'col-4' : 'col-8'">
                         <label class="form-label">{{ showCost ? 'Unit cost' : 'Price' }}</label>
                         <input v-if="showCost" v-model.number="line.unit_cost" type="number" min="0" step="0.01" class="form-control">
                         <input v-else v-model.number="line.unit_price" type="number" min="0" step="0.01" class="form-control">
@@ -102,6 +130,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
 import ProductSuggest from './ProductSuggest.vue';
+import NameSuggest from './NameSuggest.vue';
 import { lineAmount } from '../utils/quotationMath';
 import { useSettingsStore } from '../stores/settings';
 
@@ -109,6 +138,7 @@ const props = defineProps({
     items: { type: Array, required: true },
     products: { type: Array, default: () => [] },
     taxes: { type: Array, default: () => [] },
+    units: { type: Array, default: () => [] },
     showCost: { type: Boolean, default: false },
     quotationMode: { type: Boolean, default: false },
     allowCreate: { type: Boolean, default: false },
@@ -142,6 +172,8 @@ function emptyLine() {
         key: Date.now() + Math.random(),
         product_id: 0,
         product_name: '',
+        unit_id: 0,
+        unit_name: '',
         quantity: 1,
         unit_price: 0,
         unit_cost: 0,
@@ -166,10 +198,20 @@ function onProduct(line, product) {
     const changedProduct = nextId !== Number(line.product_id);
     line.product_id = nextId;
     line.product_name = product?.name || '';
+    if (changedProduct) {
+        const unitName = product?.unit_name || product?.unit?.name || '';
+        line.unit_id = Number(product?.unit_id || product?.unit?.id || 0);
+        line.unit_name = unitName;
+    }
     if (changedProduct && nextId && product.sale_price != null) {
         line.unit_price = product.sale_price;
         line.unit_cost = product.cost_price;
     }
+}
+
+function onUnit(line, unit) {
+    line.unit_id = Number(unit?.id || 0);
+    line.unit_name = unit?.name || '';
 }
 
 function amount(line) {

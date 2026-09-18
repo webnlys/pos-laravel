@@ -127,6 +127,8 @@ class QuotationService
             $quotation->items()->create([
                 'product_id' => $item['product_id'],
                 'product_name' => $item['product_name'],
+                'unit_id' => $item['unit_id'] ?? null,
+                'unit_name' => $item['unit_name'] ?? null,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
                 'discount' => $item['discount'] ?? 0,

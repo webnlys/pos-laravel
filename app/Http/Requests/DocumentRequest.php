@@ -30,6 +30,13 @@ class DocumentRequest extends FormRequest
             if (array_key_exists('product_name', $item)) {
                 $items[$index]['product_name'] = trim((string) $item['product_name']);
             }
+
+            $unitId = $item['unit_id'] ?? null;
+            $items[$index]['unit_id'] = $unitId ? (int) $unitId : null;
+
+            if (array_key_exists('unit_name', $item)) {
+                $items[$index]['unit_name'] = trim((string) $item['unit_name']);
+            }
         }
 
         $this->merge(['items' => $items]);
@@ -45,6 +52,8 @@ class DocumentRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['nullable', 'integer', 'exists:products,id', 'required_without:items.*.product_name'],
             'items.*.product_name' => ['nullable', 'string', 'max:255', 'required_without:items.*.product_id'],
+            'items.*.unit_id' => ['nullable', 'integer', 'exists:units,id'],
+            'items.*.unit_name' => ['nullable', 'string', 'max:50'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
             'items.*.unit_cost' => ['nullable', 'numeric', 'min:0'],

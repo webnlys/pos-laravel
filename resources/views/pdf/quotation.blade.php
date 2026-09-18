@@ -54,6 +54,7 @@
                 <th>#</th>
                 <th>Product</th>
                 <th class="right">Qty</th>
+                <th>Unit</th>
                 <th class="right">Price</th>
                 <th class="right">Discount</th>
                 <th>Tax</th>
@@ -66,6 +67,7 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $item->product_name }}</td>
                     <td class="right">{{ $item->quantity }}</td>
+                    <td>{{ $item->unit_name ?: '—' }}</td>
                     <td class="right">{{ $settings->formatMoney($item->unit_price) }}</td>
                     <td class="right">{{ $settings->formatMoney($item->discount ?? 0) }}</td>
                     <td>

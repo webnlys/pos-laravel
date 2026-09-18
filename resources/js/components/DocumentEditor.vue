@@ -44,6 +44,7 @@
                 :items="form.items"
                 :products="products"
                 :taxes="taxes"
+                :units="units"
                 :show-cost="kind === 'purchase'"
                 :quotation-mode="kind === 'quotation'"
                 allow-create
@@ -130,6 +131,7 @@ const products = ref([]);
 const customers = ref([]);
 const suppliers = ref([]);
 const taxes = ref([]);
+const units = ref([]);
 const error = ref('');
 const saving = ref(false);
 const showCustomerModal = ref(false);
@@ -142,7 +144,7 @@ const form = reactive({
     document_datetime: new Date().toISOString().slice(0, 16),
     discount: 0,
     notes: '',
-    items: [{ key: 1, product_id: 0, product_name: '', quantity: 1, unit_price: 0, unit_cost: 0, discount: 0, tax_id: null }],
+    items: [{ key: 1, product_id: 0, product_name: '', unit_id: 0, unit_name: '', quantity: 1, unit_price: 0, unit_cost: 0, discount: 0, tax_id: null }],
 });
 const customerForm = reactive({ name: '', phone: '', email: '', address: '' });
 
@@ -160,6 +162,7 @@ onMounted(async () => {
         props.kind === 'quotation'
             ? axios.get('/api/taxes').then((r) => { taxes.value = r.data.data; })
             : Promise.resolve(),
+        axios.get('/api/admin/units', { params: { per_page: 100 } }).then((r) => { units.value = r.data.data; }),
     ]);
     products.value = productData.data;
 
@@ -175,6 +178,8 @@ onMounted(async () => {
             key: i + 1,
             product_id: item.product_id,
             product_name: item.product_name || '',
+            unit_id: item.unit_id || 0,
+            unit_name: item.unit_name || '',
             quantity: item.quantity,
             unit_price: Number(item.unit_price || item.unit_cost || 0),
             unit_cost: Number(item.unit_cost || 0),
@@ -254,6 +259,8 @@ async function save() {
             items: filledItems().map((i) => ({
                 product_id: i.product_id || null,
                 product_name: i.product_name || null,
+                unit_id: i.unit_id || null,
+                unit_name: i.unit_name || null,
                 quantity: i.quantity,
                 unit_price: i.unit_price,
                 unit_cost: i.unit_cost,

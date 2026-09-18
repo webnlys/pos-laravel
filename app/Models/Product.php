@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
@@ -10,6 +11,7 @@ class Product extends Model
     protected $fillable = [
         'name',
         'sku',
+        'unit_id',
         'sale_price',
         'cost_price',
         'stock_qty',
@@ -24,6 +26,11 @@ class Product extends Model
             'stock_qty' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     public function saleItems(): HasMany

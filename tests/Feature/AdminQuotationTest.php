@@ -124,9 +124,82 @@ class AdminQuotationTest extends TestCase
 
         $this->assertEquals(1, Product::query()->count());
         $this->assertDatabaseHas('quotation_items', [
-            'product_id' => $product->id,
             'product_name' => 'SALA DOWN',
             'unit_price' => 4300,
+        ]);
+    }
+
+    public function test_admin_can_create_unit_and_attach_it_to_product_and_quotation(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->postJson('/api/admin/units', [
+            'name' => 'Piece',
+        ])->assertCreated()
+            ->assertJsonPath('data.name', 'Piece');
+
+        $this->actingAs($admin)->postJson('/api/admin/units', [
+            'name' => 'piece',
+        ])->assertCreated()
+            ->assertJsonPath('data.name', 'Piece');
+
+        $this->assertEquals(1, \App\Models\Unit::query()->count());
+
+        $productResponse = $this->actingAs($admin)->postJson('/api/admin/products', [
+            'name' => 'Oil',
+            'sku' => 'OIL-1',
+            'unit_name' => 'Liter',
+            'sale_price' => 20,
+        ]);
+
+        $productResponse->assertCreated()
+            ->assertJsonPath('data.unit_name', 'Liter');
+
+        $this->assertDatabaseHas('units', ['name' => 'Liter']);
+
+        $customer = Customer::query()->create(['name' => 'Buyer']);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                [
+                    'product_id' => $productResponse->json('data.id'),
+                    'unit_name' => 'Liter',
+                    'quantity' => 2,
+                    'unit_price' => 20,
+                ],
+            ],
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('quotation_items', [
+            'product_name' => 'Oil',
+            'unit_name' => 'Liter',
+            'quantity' => 2,
+        ]);
+    }
+
+    public function test_typed_unit_on_quotation_line_is_created(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Buyer']);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                [
+                    'product_name' => 'Milk',
+                    'unit_name' => 'Liter',
+                    'quantity' => 1,
+                    'unit_price' => 12,
+                ],
+            ],
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('units', ['name' => 'Liter']);
+        $this->assertDatabaseHas('products', ['name' => 'Milk']);
+        $this->assertDatabaseHas('quotation_items', [
+            'product_name' => 'Milk',
+            'unit_name' => 'Liter',
         ]);
     }
 

@@ -11,6 +11,8 @@ class QuotationItem extends Model
         'quotation_id',
         'product_id',
         'product_name',
+        'unit_id',
+        'unit_name',
         'quantity',
         'unit_price',
         'discount',
@@ -41,6 +43,11 @@ class QuotationItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     public function tax(): BelongsTo
