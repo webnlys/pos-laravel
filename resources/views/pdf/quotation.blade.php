@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #ccc; padding: 6px; }
         th { background: #f3f3f3; text-align: left; }
         .header { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
@@ -11,6 +12,14 @@
         .header-logo { width: 18%; text-align: center; }
         .header-info { width: 50%; }
         .header-meta { width: 32%; text-align: right; }
+        .table-body { width: 100%; border-collapse: collapse; }
+        .col-num { width: 6%; }
+        .col-product { width: 34%; }
+        .col-qty { width: 10%; }
+        .col-price { width: 14%; }
+        .col-discount { width: 12%; }
+        .col-tax { width: 12%; }
+        .col-amount { width: 12%; }
         .right { text-align: right; }
         tfoot .grand td { font-weight: bold; }
         h1 { font-size: 20px; margin: 0 0 8px; }
@@ -53,16 +62,16 @@
         @if($document->customer?->address)<strong>Address: </strong>{{ $document->customer->address }}@endif
     </p>
 
-    <table class="table-body" cellspacing="0" cellpadding="0">
+    <table class="table-body" width="100%" cellspacing="0" cellpadding="0">
         <thead>
             <tr>
-                <th>#</th>
-                <th>Product</th>
-                <th class="right">Qty</th>
-                <th class="right">Price ({{ $settings->currencyCode() }})</th>
-                <th class="right">Discount ({{ $settings->currencyCode() }})</th>
-                <th>Tax</th>
-                <th class="right">Amount ({{ $settings->currencyCode() }})</th>
+                <th class="col-num">#</th>
+                <th class="col-product">Product</th>
+                <th class="right col-qty">Qty</th>
+                <th class="right col-price">Price ({{ $settings->currencyCode() }})</th>
+                <th class="right col-discount">Discount ({{ $settings->currencyCode() }})</th>
+                <th class="col-tax">Tax</th>
+                <th class="right col-amount">Amount ({{ $settings->currencyCode() }})</th>
             </tr>
         </thead>
         <tbody>
