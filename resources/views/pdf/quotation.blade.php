@@ -7,7 +7,7 @@
         th, td { border: 1px solid #ccc; padding: 6px; }
         th { background: #f3f3f3; text-align: left; }
         .header { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        .header td { vertical-align: middle; padding: 8px 12px; }
+        .header td { border: none; vertical-align: middle; padding: 8px 12px; }
         .header-logo { width: 18%; text-align: center; }
         .header-info { width: 50%; }
         .header-meta { width: 32%; text-align: right; }
@@ -25,20 +25,20 @@
 <body>
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
-            <td class="header-logo" >
+            <td class="header-logo" style="border:none; border-right: 1px solid #999999; border-bottom: 1px solid #999999;">
                 @if($settings->logoPath())
                     <img class="logo" src="{{ $settings->logoPath() }}" alt="logo">
                 @endif
             </td>
-            <td class="header-info">
+            <td class="header-info" style="border:none; border-left: 1px solid #999999; border-right: 1px solid #999999; border-bottom: 1px solid #999999;">
                 <div class="company" style="font-size: 18px; font-weight: bold;">{{ $settings->name }}</div>
                 <div class="muted">
-                    @if($settings->address){{ $settings->address }}<br>@endif
-                    @if($settings->phone)Phone: {{ $settings->phone }}<br>@endif
-                    @if($settings->email)Email: {{ $settings->email }}@endif
+                    @if($settings->address)<strong>Address: </strong>{{ $settings->address }}<br>@endif
+                    @if($settings->phone)<strong>Phone: </strong>{{ $settings->phone }}<br>@endif
+                    @if($settings->email)<strong>Email: </strong>{{ $settings->email }}@endif
                 </div>
             </td>
-            <td class="header-meta" >
+            <td class="header-meta" style="border:none; border-bottom: 1px solid #999999;">
                 <h1>{{ $title }}</h1>
                 <div><strong>Invoice No: </strong>{{ $document->number }}</div>
                 <div><strong>Date: </strong>{{ $document->document_datetime?->format('d M Y, h:i A') }}</div>
@@ -46,11 +46,11 @@
         </tr>
     </table>
 
-    <p>
+    <p style="margin-top: 20px; margin-bottom: 20px;">
         <strong>Customer:</strong> {{ $document->customer?->name }}<br>
-        @if($document->customer?->email)Email: {{ $document->customer->email }}<br>@endif
-        @if($document->customer?->phone)Phone: {{ $document->customer->phone }}<br>@endif
-        @if($document->customer?->address){{ $document->customer->address }}@endif
+        @if($document->customer?->email)<strong>Email: </strong>{{ $document->customer->email }}<br>@endif
+        @if($document->customer?->phone)<strong>Phone: </strong>{{ $document->customer->phone }}<br>@endif
+        @if($document->customer?->address)<strong>Address: </strong>{{ $document->customer->address }}@endif
     </p>
 
     <table class="table-body" cellspacing="0" cellpadding="0">
