@@ -17,6 +17,8 @@ class BusinessSettingResource extends JsonResource
             'phone' => $this->phone,
             'address' => $this->address,
             'currency' => $this->currencyCode(),
+            'tagline' => $this->tagline,
+            'invoice_terms' => $this->invoice_terms,
             'currencies' => config('currencies.codes'),
         ];
     }

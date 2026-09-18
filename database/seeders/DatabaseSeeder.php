@@ -76,6 +76,7 @@ class DatabaseSeeder extends Seeder
             'phone'    => $settings->phone ?: '01300000000',
             'address'  => $settings->address ?: 'Dhaka, Bangladesh',
             'currency' => $settings->currency ?: config('currencies.default', 'AED'),
+            'tagline' => $settings->tagline ?: 'Thank you for your business!',
         ])->save();
     }
 }

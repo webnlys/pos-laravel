@@ -13,11 +13,27 @@ class BusinessSetting extends Model
         'phone',
         'address',
         'currency',
+        'tagline',
+        'invoice_terms',
     ];
 
     public function currencyCode(): string
     {
         return $this->currency ?: (string) config('currencies.default', 'AED');
+    }
+
+    public function taglineText(): ?string
+    {
+        $tagline = trim((string) $this->tagline);
+
+        return $tagline !== '' ? $tagline : null;
+    }
+
+    public function invoiceTermsText(): ?string
+    {
+        $terms = trim((string) $this->invoice_terms);
+
+        return $terms !== '' ? $terms : null;
     }
 
     public function formatMoney(mixed $amount): string

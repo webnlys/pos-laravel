@@ -20,6 +20,8 @@ class BusinessSettingRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string'],
             'currency' => ['required', 'string', 'size:3', Rule::in(array_keys(config('currencies.codes')))],
+            'tagline' => ['nullable', 'string', 'max:500'],
+            'invoice_terms' => ['nullable', 'string', 'max:5000'],
             'logo' => ['nullable', 'image', 'max:2048'],
         ];
     }

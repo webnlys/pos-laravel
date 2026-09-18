@@ -44,6 +44,7 @@ class BusinessSettingController extends Controller
         return BusinessSetting::query()->firstOrCreate([], [
             'name' => config('app.name'),
             'currency' => config('currencies.default', 'AED'),
+            'tagline' => 'Thank you for your business!',
         ]);
     }
 }

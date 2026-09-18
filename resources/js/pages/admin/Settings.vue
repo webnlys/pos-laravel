@@ -32,6 +32,16 @@
                     <label class="form-label">Address</label>
                     <textarea v-model="form.address" class="form-control"></textarea>
                 </div>
+                <div class="col-12">
+                    <label class="form-label">Invoice tagline</label>
+                    <textarea v-model="form.tagline" class="form-control" rows="2" maxlength="500"></textarea>
+                    <div class="form-text">Shown in the middle of quotation and invoice PDFs. Leave blank to hide it.</div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Invoice terms and conditions</label>
+                    <textarea v-model="form.invoice_terms" class="form-control" rows="5" maxlength="5000"></textarea>
+                    <div class="form-text">Shown at the bottom of quotation and invoice PDFs. Leave blank to hide it.</div>
+                </div>
             </div>
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
             <button class="btn btn-primary mt-3">Save</button>
@@ -47,7 +57,7 @@ import PageShell from '../../components/PageShell.vue';
 import { useSettingsStore } from '../../stores/settings';
 
 const settings = useSettingsStore();
-const form = reactive({ name: '', email: '', phone: '', address: '', currency: 'AED' });
+const form = reactive({ name: '', email: '', phone: '', address: '', currency: 'AED', tagline: '', invoice_terms: '' });
 const currencyOptions = ref({ AED: 'UAE Dirham' });
 const logoFile = ref(null);
 const logoUrl = ref('');
@@ -60,6 +70,8 @@ onMounted(async () => {
     form.phone = data.data.phone || '';
     form.address = data.data.address || '';
     form.currency = data.data.currency || 'AED';
+    form.tagline = data.data.tagline || '';
+    form.invoice_terms = data.data.invoice_terms || '';
     currencyOptions.value = data.data.currencies || currencyOptions.value;
     logoUrl.value = data.data.logo;
     settings.apply(data.data);
@@ -78,10 +90,14 @@ async function save() {
         payload.append('phone', form.phone || '');
         payload.append('address', form.address || '');
         payload.append('currency', form.currency || 'AED');
+        payload.append('tagline', form.tagline || '');
+        payload.append('invoice_terms', form.invoice_terms || '');
         if (logoFile.value) payload.append('logo', logoFile.value);
         const { data } = await axios.post('/api/admin/settings', payload);
         logoUrl.value = data.data.logo;
         form.currency = data.data.currency;
+        form.tagline = data.data.tagline || '';
+        form.invoice_terms = data.data.invoice_terms || '';
         settings.apply(data.data);
         await Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
     } catch (e) {

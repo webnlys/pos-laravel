@@ -48,9 +48,10 @@ class PdfService
             'mode' => 'utf-8',
             'format' => 'A4',
             'margin_top' => 12,
-            'margin_bottom' => 12,
+            'margin_bottom' => 40,
             'margin_left' => 12,
             'margin_right' => 12,
+            'margin_footer' => 8,
             'tempDir' => $tempDir,
         ]);
         $mpdf->WriteHTML($html);
@@ -63,6 +64,7 @@ class PdfService
         return BusinessSetting::query()->first() ?? new BusinessSetting([
             'name' => config('app.name'),
             'currency' => config('currencies.default', 'AED'),
+            'tagline' => 'Thank you for your business!',
         ]);
     }
 }

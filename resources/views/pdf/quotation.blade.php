@@ -8,14 +8,15 @@
         .logo { max-height: 60px; }
         .company { font-size: 18px; font-weight: bold; }
         .muted { color: #555; }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; border-spacing: 0; }
         th, td { border: 1px solid #ccc; padding: 6px; }
         th { background: #f3f3f3; text-align: left; }
         .right { text-align: right; }
-        .totals { width: 340px; margin-left: auto; margin-top: 12px; }
-        .totals td { border: none; padding: 4px 0; }
-        .totals .grand { font-weight: bold; border-top: 1px solid #111; }
+        tfoot .grand td { font-weight: bold; }
         h1 { font-size: 20px; margin: 0 0 8px; }
+        .tagline-middle { text-align: center; color: #555; margin: 28px 0 12px; }
+        .terms-footer { color: #555; font-size: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
+        .terms-footer strong { display: block; margin-bottom: 4px; color: #222; }
     </style>
 </head>
 <body>
@@ -36,7 +37,6 @@
                 <h1>{{ $title }}</h1>
                 <div><strong>{{ $document->number }}</strong></div>
                 <div>{{ $document->document_datetime?->format('d M Y, h:i A') }}</div>
-                <div>Status: {{ ucfirst($document->status) }}</div>
             </td>
         </tr>
     </table>
@@ -48,17 +48,16 @@
         @if($document->customer?->address){{ $document->customer->address }}@endif
     </p>
 
-    <table>
+    <table cellspacing="0" cellpadding="0">
         <thead>
             <tr>
                 <th>#</th>
                 <th>Product</th>
                 <th class="right">Qty</th>
-                <th>Unit</th>
-                <th class="right">Price</th>
-                <th class="right">Discount</th>
+                <th class="right">Price ({{ $settings->currencyCode() }})</th>
+                <th class="right">Discount ({{ $settings->currencyCode() }})</th>
                 <th>Tax</th>
-                <th class="right">Amount</th>
+                <th class="right">Amount ({{ $settings->currencyCode() }})</th>
             </tr>
         </thead>
         <tbody>
@@ -66,10 +65,9 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $item->product_name }}</td>
-                    <td class="right">{{ $item->quantity }}</td>
-                    <td>{{ $item->unit_name ?: '—' }}</td>
-                    <td class="right">{{ $settings->formatMoney($item->unit_price) }}</td>
-                    <td class="right">{{ $settings->formatMoney($item->discount ?? 0) }}</td>
+                    <td class="right">{{ $item->quantity }}{{ $item->unit_name ? ' '.$item->unit_name : '' }}</td>
+                    <td class="right">{{ number_format((float) $item->unit_price, 2) }}</td>
+                    <td class="right">{{ number_format((float) ($item->discount ?? 0), 2) }}</td>
                     <td>
                         @if($item->tax_name)
                             {{ $item->tax_name }} ({{ number_format($item->tax_rate_percent, 2) }}%)
@@ -77,22 +75,44 @@
                             —
                         @endif
                     </td>
-                    <td class="right">{{ $settings->formatMoney($item->line_total) }}</td>
+                    <td class="right">{{ number_format((float) $item->line_total, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
-    </table>
-
-    <table class="totals">
-        <tr><td>Subtotal</td><td class="right">{{ $settings->formatMoney($document->subtotal) }}</td></tr>
-        <tr><td>Discount</td><td class="right">{{ $settings->formatMoney($document->discount) }}</td></tr>
-        <tr><td>Tax</td><td class="right">{{ $settings->formatMoney($document->tax_total) }}</td></tr>
-        <tr class="grand"><td>Total</td><td class="right">{{ $settings->formatMoney($document->total) }}</td></tr>
+        <tfoot>
+            <tr>
+                <td colspan="6" class="right">Subtotal</td>
+                <td class="right">{{ number_format((float) $document->subtotal, 2) }}</td>
+            </tr>
+            <tr>
+                <td colspan="6" class="right">Discount</td>
+                <td class="right">{{ number_format((float) $document->discount, 2) }}</td>
+            </tr>
+            <tr>
+                <td colspan="6" class="right">Tax</td>
+                <td class="right">{{ number_format((float) $document->tax_total, 2) }}</td>
+            </tr>
+            <tr class="grand">
+                <td colspan="6" class="right">Total</td>
+                <td class="right">{{ number_format((float) $document->total, 2) }}</td>
+            </tr>
+        </tfoot>
     </table>
 
     @if($document->notes)
         <p><strong>Notes:</strong> {{ $document->notes }}</p>
     @endif
-    <p class="muted">Thank you for your business!</p>
+    @if($settings->taglineText())
+        <p class="tagline-middle">{!! nl2br(e($settings->taglineText())) !!}</p>
+    @endif
+    @if($settings->invoiceTermsText())
+        <htmlpagefooter name="invoiceFooter">
+            <div class="terms-footer">
+                <strong>Terms and Conditions</strong>
+                {!! nl2br(e($settings->invoiceTermsText())) !!}
+            </div>
+        </htmlpagefooter>
+        <sethtmlpagefooter name="invoiceFooter" value="on" />
+    @endif
 </body>
 </html>
