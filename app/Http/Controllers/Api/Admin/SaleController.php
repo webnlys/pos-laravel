@@ -38,7 +38,7 @@ class SaleController extends Controller
 
     public function update(DocumentRequest $request, Sale $sale)
     {
-        return new SaleResource($this->service->update($sale, $request->validated()));
+        return new SaleResource($this->service->update($sale, $request->validated(), $request->user()->id));
     }
 
     public function destroy(Sale $sale)

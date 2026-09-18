@@ -31,6 +31,10 @@ class PaymentRepository extends Repository
             $query->where('customer_id', $request->integer('customer_id'));
         }
 
+        if ($request->filled('sale_id')) {
+            $query->where('sale_id', $request->integer('sale_id'));
+        }
+
         return $this->paginateQuery($query, $request, $orderBy, $direction);
     }
 }

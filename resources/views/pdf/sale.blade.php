@@ -101,6 +101,20 @@
                 <td colspan="6" class="right">Total</td>
                 <td class="right">{{ number_format((float) $document->total, 2) }}</td>
             </tr>
+            <tr>
+                <td colspan="6" class="right">Paid</td>
+                <td class="right">{{ number_format((float) $document->paidAmount(), 2) }}</td>
+            </tr>
+            <tr>
+                <td colspan="6" class="right">Due</td>
+                <td class="right">{{ number_format((float) $document->dueAmount(), 2) }}</td>
+            </tr>
+            @if($document->advanceAmount() > 0)
+            <tr>
+                <td colspan="6" class="right">Advance</td>
+                <td class="right">{{ number_format((float) $document->advanceAmount(), 2) }}</td>
+            </tr>
+            @endif
         </tfoot>
     </table>
 

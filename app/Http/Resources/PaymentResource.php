@@ -16,6 +16,7 @@ class PaymentResource extends JsonResource
             'customer' => new CustomerResource($this->whenLoaded('customer')),
             'sale_id' => $this->sale_id,
             'sale' => $this->whenLoaded('sale'),
+            'kind' => $this->sale_id ? 'invoice' : 'advance',
             'amount' => (float) $this->amount,
             'method' => $this->method,
             'paid_at' => $this->paid_at,

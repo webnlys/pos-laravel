@@ -10,7 +10,12 @@
         <div class="table-wrap">
             <table class="table table-bordered stack-table">
                 <thead>
-                    <tr><th>Name</th><th>Phone</th><th>Email</th><th></th></tr>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Balance ({{ settings.currency }})</th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                     <tr v-if="!rows.length">
@@ -18,10 +23,11 @@
                     </tr>
                     <tr v-for="row in rows" :key="row.id">
                         <td data-label="Name">{{ row.name }}</td>
-                        <td data-label="Phone">{{ row.phone }}</td>
-                        <td data-label="Email">{{ row.email }}</td>
+                        <td data-label="Phone">{{ row.phone || '—' }}</td>
+                        <td data-label="Balance" :class="balanceClass(row)">{{ balanceText(row) }}</td>
                         <td class="stack-actions">
                             <div class="mobile-actions">
+                                <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.customers.show', params: { id: row.id } }">Details</router-link>
                                 <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.customers.edit', params: { id: row.id } }">Edit</router-link>
                                 <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
                             </div>
@@ -40,8 +46,38 @@ import Swal from 'sweetalert2';
 import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
 import { usePagedList } from '../../../composables/usePagedList';
+import { useSettingsStore } from '../../../stores/settings';
 
+const settings = useSettingsStore();
 const { rows, meta, q, perPage, load } = usePagedList('/api/admin/customers');
+
+function money(value) {
+    return settings.formatMoney(value);
+}
+
+function balanceText(row) {
+    if (Number(row.advance || 0) > 0) {
+        return `${(row.advance)} credit`;
+    }
+
+    if (Number(row.due || 0) > 0) {
+        return `${(row.due)} due`;
+    }
+
+    return (0);
+}
+
+function balanceClass(row) {
+    if (Number(row.advance || 0) > 0) {
+        return 'balance-credit';
+    }
+
+    if (Number(row.due || 0) > 0) {
+        return 'balance-due';
+    }
+
+    return 'balance-settled';
+}
 
 async function destroy(id) {
     const ok = await Swal.fire({ title: 'Delete customer?', icon: 'warning', showCancelButton: true });
@@ -50,3 +86,20 @@ async function destroy(id) {
     load(meta.value.current_page);
 }
 </script>
+
+<style scoped>
+.balance-credit {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.balance-due {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.balance-settled {
+    color: inherit;
+    font-weight: 500;
+}
+</style>

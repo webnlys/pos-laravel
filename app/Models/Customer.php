@@ -34,4 +34,28 @@ class Customer extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    /**
+     * @return array{charged:float, paid:float, due:float, advance:float}
+     */
+    public function accountSummary(): array
+    {
+        $charged = $this->relationLoaded('sales')
+            ? (float) $this->sales->sum('total')
+            : (float) ($this->sales_sum_total ?? $this->sales()->sum('total'));
+
+        $paid = $this->relationLoaded('payments')
+            ? (float) $this->payments->sum('amount')
+            : (float) ($this->payments_sum_amount ?? $this->payments()->sum('amount'));
+
+        $charged = round($charged, 2);
+        $paid = round($paid, 2);
+
+        return [
+            'charged' => $charged,
+            'paid' => $paid,
+            'due' => round(max(0, $charged - $paid), 2),
+            'advance' => round(max(0, $paid - $charged), 2),
+        ];
+    }
 }

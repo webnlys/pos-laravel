@@ -67,6 +67,14 @@ class DocumentRequest extends FormRequest
             $rules['customer_id'] = ['required', 'exists:customers,id'];
         }
 
+        if ($this->routeIs('admin.sales.*')) {
+            $rules['payment'] = ['nullable', 'array'];
+            $rules['payment.amount'] = ['nullable', 'numeric', 'min:0'];
+            $rules['payment.method'] = ['nullable', 'in:cash,bank,cheque,other'];
+            $rules['payment.paid_at'] = ['nullable', 'date'];
+            $rules['payment.notes'] = ['nullable', 'string'];
+        }
+
         return $rules;
     }
 }

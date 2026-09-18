@@ -1,5 +1,5 @@
 <template>
-    <PageShell :title="id ? 'Edit customer' : 'New customer'">
+    <PageShell :title="id ? 'Edit customer' : 'New customer'" :back-to="{ name: 'admin.customers' }">
         <form @submit.prevent="save">
             <div class="row g-3">
                 <div class="col-md-6">

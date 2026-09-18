@@ -9,8 +9,7 @@ class CustomerResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $charged = (float) $this->sales()->sum('total');
-        $paid = (float) $this->payments()->sum('amount');
+        $summary = $this->accountSummary();
 
         return [
             'id' => $this->id,
@@ -18,8 +17,13 @@ class CustomerResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'address' => $this->address,
-            'due' => round($charged - $paid, 2),
+            'charged' => $summary['charged'],
+            'paid' => $summary['paid'],
+            'due' => $summary['due'],
+            'advance' => $summary['advance'],
             'created_at' => $this->created_at,
+            'sales' => SaleResource::collection($this->whenLoaded('sales')),
+            'payments' => PaymentResource::collection($this->whenLoaded('payments')),
         ];
     }
 }

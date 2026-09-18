@@ -65,11 +65,48 @@ class Sale extends Model
 
     public function paidAmount(): float
     {
-        return (float) $this->payments()->sum('amount');
+        $paid = $this->relationLoaded('payments')
+            ? $this->payments->sum('amount')
+            : $this->payments()->sum('amount');
+
+        return round((float) $paid, 2);
     }
 
     public function dueAmount(): float
     {
-        return round((float) $this->total - $this->paidAmount(), 2);
+        return $this->paymentSummary()['due'];
+    }
+
+    public function advanceAmount(): float
+    {
+        return $this->paymentSummary()['advance'];
+    }
+
+    public function paymentStatus(): string
+    {
+        return $this->paymentSummary()['status'];
+    }
+
+    /**
+     * @return array{paid:float, due:float, advance:float, status:string}
+     */
+    public function paymentSummary(): array
+    {
+        $paid = $this->paidAmount();
+        $total = round((float) $this->total, 2);
+        $due = round(max(0, $total - $paid), 2);
+        $advance = round(max(0, $paid - $total), 2);
+
+        $status = 'unpaid';
+        if ($paid > 0) {
+            $status = $advance > 0 ? 'advance' : ($due > 0 ? 'partial' : 'paid');
+        }
+
+        return [
+            'paid' => $paid,
+            'due' => $due,
+            'advance' => $advance,
+            'status' => $status,
+        ];
     }
 }

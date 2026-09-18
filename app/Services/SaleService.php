@@ -12,6 +12,7 @@ class SaleService
         private DocumentNumberService $numbers,
         private TaxService $taxes,
         private DocumentItemNormalizer $normalizer,
+        private PaymentService $payments,
     ) {}
 
     public function create(array $data, int $userId): Sale
@@ -31,19 +32,21 @@ class SaleService
                 'discount' => $totals['discount'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
-                'status' => $data['status'] ?? 'confirmed',
+                'status' => 'unpaid',
                 'notes' => $data['notes'] ?? null,
             ]);
 
             $this->syncLines($sale, $totals['items'], $totals['taxes']);
+            $this->recordPayment($sale, $data['payment'] ?? null, $userId);
+            $this->payments->syncSaleStatus($sale->id);
 
             return $sale->load(['customer', 'items', 'taxes', 'payments']);
         });
     }
 
-    public function update(Sale $sale, array $data): Sale
+    public function update(Sale $sale, array $data, ?int $userId = null): Sale
     {
-        return DB::transaction(function () use ($sale, $data) {
+        return DB::transaction(function () use ($sale, $data, $userId) {
             $items = $this->normalizer->normalize($data['items']);
             $at = $this->normalizer->parseDatetime($data['document_datetime'] ?? $sale->document_datetime);
             $totals = $this->taxes->quotationTotals($items);
@@ -61,6 +64,8 @@ class SaleService
             $sale->items()->delete();
             $sale->taxes()->delete();
             $this->syncLines($sale, $totals['items'], $totals['taxes']);
+            $this->recordPayment($sale->fresh(), $data['payment'] ?? null, $userId ?: (int) $sale->user_id);
+            $this->payments->syncSaleStatus($sale->id);
 
             return $sale->fresh(['customer', 'items', 'taxes', 'payments']);
         });
@@ -76,8 +81,29 @@ class SaleService
                 ]);
             }
 
+            $sale->payments()->delete();
             $sale->delete();
         });
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payment
+     */
+    private function recordPayment(Sale $sale, ?array $payment, int $userId): void
+    {
+        $amount = round((float) ($payment['amount'] ?? 0), 2);
+        if ($amount <= 0 || $userId < 1) {
+            return;
+        }
+
+        $this->payments->create([
+            'customer_id' => $sale->customer_id,
+            'sale_id' => $sale->id,
+            'amount' => $amount,
+            'method' => $payment['method'] ?? 'cash',
+            'paid_at' => $payment['paid_at'] ?? now(),
+            'notes' => $payment['notes'] ?? null,
+        ], $userId);
     }
 
     /**

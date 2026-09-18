@@ -14,8 +14,8 @@
                         <th>Name</th>
                         <th>SKU</th>
                         <th>Unit</th>
-                        <th>Sale</th>
-                        <th>Cost</th>
+                        <th>Sale ({{ settings.currency }})</th>
+                        <th>Cost ({{ settings.currency }})</th>
                         <th>Status</th>
                         <th></th>
                     </tr>
@@ -28,8 +28,8 @@
                         <td data-label="Name">{{ row.name }}</td>
                         <td data-label="SKU">{{ row.sku }}</td>
                         <td data-label="Unit">{{ row.unit_name || '—' }}</td>
-                        <td data-label="Sale">{{ money(row.sale_price) }}</td>
-                        <td data-label="Cost">{{ money(row.cost_price) }}</td>
+                        <td data-label="Sale">{{ (row.sale_price) }}</td>
+                        <td data-label="Cost">{{ (row.cost_price) }}</td>
                         <td data-label="Status">
                             <span class="badge rounded-pill" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
                                 {{ row.is_active ? 'Active' : 'Inactive' }}

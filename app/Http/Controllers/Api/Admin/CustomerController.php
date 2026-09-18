@@ -27,6 +27,11 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        $customer->load([
+            'sales' => fn ($query) => $query->with('payments')->orderByDesc('id'),
+            'payments' => fn ($query) => $query->with('sale')->orderByDesc('id'),
+        ]);
+
         return new CustomerResource($customer);
     }
 

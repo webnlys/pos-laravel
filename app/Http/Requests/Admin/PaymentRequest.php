@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Sale;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PaymentRequest extends FormRequest
@@ -21,5 +22,22 @@ class PaymentRequest extends FormRequest
             'paid_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $saleId = $this->input('sale_id');
+            $customerId = $this->input('customer_id');
+
+            if (! $saleId || ! $customerId) {
+                return;
+            }
+
+            $sale = Sale::query()->find($saleId);
+            if ($sale && (int) $sale->customer_id !== (int) $customerId) {
+                $validator->errors()->add('sale_id', 'This invoice does not belong to the selected customer.');
+            }
+        });
     }
 }

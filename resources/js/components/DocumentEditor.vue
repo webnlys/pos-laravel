@@ -14,7 +14,9 @@
                     <div class="field-with-action">
                         <select v-model.number="form.customer_id" class="form-select" required>
                             <option :value="0">Select</option>
-                            <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
+                            <option v-for="c in customers" :key="c.id" :value="c.id">
+                            {{ c.name }}<template v-if="kind === 'sale'"> (due {{ money(c.due) }}<template v-if="c.advance > 0">, adv {{ money(c.advance) }}</template>)</template>
+                        </option>
                         </select>
                         <button
                             v-if="isLineDocument"
@@ -62,8 +64,45 @@
                         <div>Discount: {{ money(totals.discount) }}</div>
                         <div v-for="tax in totals.taxes" :key="tax.name">{{ tax.name }} ({{ tax.rate_percent }}%): {{ money(tax.amount) }}</div>
                         <div class="fw-bold">Total: {{ money(totals.total) }}</div>
+                        <template v-if="kind === 'sale'">
+                            <div>Paid: {{ money(paymentPreview.paid) }}</div>
+                            <div>Due: {{ money(paymentPreview.due) }}</div>
+                            <div v-if="paymentPreview.advance > 0">Advance: {{ money(paymentPreview.advance) }}</div>
+                            <div class="mt-2"><PaymentBadge :status="paymentPreview.status" /></div>
+                        </template>
                     </div>
                 </div>
+            </div>
+
+            <div v-if="kind === 'sale'" class="page-card p-3 mt-3">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                    <strong>Receive payment</strong>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @click="payDue">Pay due</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @click="payFull">Pay full</button>
+                    </div>
+                </div>
+                <p class="text-muted mb-3">Enter cash received now. Less than the total is partial; more than the total is kept as advance.</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Amount received</label>
+                        <input v-model.number="payment.amount" type="number" min="0" step="0.01" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Method</label>
+                        <select v-model="payment.method" class="form-select">
+                            <option value="cash">Cash</option>
+                            <option value="bank">Bank</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Notes</label>
+                        <input v-model="payment.notes" class="form-control" placeholder="Optional">
+                    </div>
+                </div>
+                <p v-if="recordedPaid > 0" class="text-muted mt-2 mb-0">Already paid on this invoice: {{ money(recordedPaid) }}</p>
             </div>
 
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
@@ -127,6 +166,8 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import LineItems from './LineItems.vue';
 import PageShell from './PageShell.vue';
+import PaymentBadge from './PaymentBadge.vue';
+import { paymentSummary } from '../utils/paymentStatus';
 import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
@@ -146,6 +187,12 @@ const error = ref('');
 const saving = ref(false);
 const converting = ref(false);
 const convertedSaleId = ref(null);
+const recordedPaid = ref(0);
+const payment = reactive({
+    amount: 0,
+    method: 'cash',
+    notes: '',
+});
 const showCustomerModal = ref(false);
 const savingCustomer = ref(false);
 const customerError = ref('');
@@ -162,6 +209,7 @@ const customerForm = reactive({ name: '', phone: '', email: '', address: '' });
 
 const isLineDocument = computed(() => props.kind === 'quotation' || props.kind === 'sale');
 const resource = `/api/admin/${props.kind === 'purchase' ? 'purchases' : props.kind === 'sale' ? 'sales' : 'quotations'}`;
+const paymentPreview = computed(() => paymentSummary(totals.value.total, recordedPaid.value + Number(payment.amount || 0)));
 
 onMounted(async () => {
     const [{ data: productData }] = await Promise.all([
@@ -188,6 +236,10 @@ onMounted(async () => {
         form.discount = doc.discount || 0;
         form.notes = doc.notes || '';
         convertedSaleId.value = doc.converted_sale_id || null;
+        recordedPaid.value = Number(doc.paid || 0);
+        payment.amount = 0;
+        payment.method = 'cash';
+        payment.notes = '';
         form.items = (doc.items || []).map((item, i) => ({
             key: i + 1,
             product_id: item.product_id,
@@ -282,7 +334,26 @@ function documentPayload() {
     if (!isLineDocument.value) payload.discount = form.discount || 0;
     if (props.kind === 'purchase') payload.supplier_id = form.supplier_id;
     else payload.customer_id = form.customer_id;
+    if (props.kind === 'sale' && Number(payment.amount || 0) > 0) {
+        payload.payment = {
+            amount: payment.amount,
+            method: payment.method,
+            notes: payment.notes || null,
+        };
+    }
     return payload;
+}
+
+function remainingDue() {
+    return Math.max(0, Math.round(((Number(totals.value.total) || 0) - recordedPaid.value) * 100) / 100);
+}
+
+function payDue() {
+    payment.amount = remainingDue();
+}
+
+function payFull() {
+    payment.amount = Math.max(0, Math.round(((Number(totals.value.total) || 0)) * 100) / 100);
 }
 
 async function save() {

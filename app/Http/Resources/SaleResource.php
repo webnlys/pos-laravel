@@ -9,6 +9,8 @@ class SaleResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $summary = $this->paymentSummary();
+
         return [
             'id' => $this->id,
             'number' => $this->number,
@@ -20,12 +22,14 @@ class SaleResource extends JsonResource
             'discount' => (float) $this->discount,
             'tax_total' => (float) $this->tax_total,
             'total' => (float) $this->total,
-            'status' => $this->status,
+            'status' => $summary['status'],
             'notes' => $this->notes,
-            'paid' => $this->whenLoaded('payments', fn () => $this->paidAmount(), $this->paidAmount()),
-            'due' => $this->dueAmount(),
+            'paid' => $summary['paid'],
+            'due' => $summary['due'],
+            'advance' => $summary['advance'],
             'items' => $this->whenLoaded('items'),
             'taxes' => $this->whenLoaded('taxes'),
+            'payments' => PaymentResource::collection($this->whenLoaded('payments')),
         ];
     }
 }

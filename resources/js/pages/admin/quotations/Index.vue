@@ -9,7 +9,7 @@
         </form>
         <div class="table-wrap">
             <table class="table table-bordered stack-table">
-                <thead><tr><th>Number</th><th>Date</th><th>Customer</th><th>Total</th><th></th></tr></thead>
+                <thead><tr><th>Number</th><th>Date</th><th>Customer</th><th>Total ({{ settings.currency }})</th><th></th></tr></thead>
                 <tbody>
                     <tr v-if="!rows.length">
                         <td colspan="5" class="text-center text-muted">No quotations found.</td>
@@ -18,7 +18,7 @@
                         <td data-label="Number">{{ row.number }}</td>
                         <td data-label="Date">{{ String(row.document_datetime).slice(0, 16) }}</td>
                         <td data-label="Customer">{{ row.customer?.name }}</td>
-                        <td data-label="Total">{{ money(row.total) }}</td>
+                        <td data-label="Total">{{ (row.total) }}</td>
                         <td class="stack-actions">
                             <div class="mobile-actions">
                                 <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.show', params: { id: row.id } }">View</router-link>

@@ -3,6 +3,7 @@
         <template #nav>
             <router-link :to="{ name: 'admin.quotations' }">Quotations</router-link>
             <router-link :to="{ name: 'admin.sales' }">Sales</router-link>
+            <router-link :to="{ name: 'admin.payments' }">Payments</router-link>
             <router-link :to="{ name: 'admin.products' }">Products</router-link>
             <router-link :to="{ name: 'admin.units' }">Units</router-link>
             <router-link :to="{ name: 'admin.customers' }">Customers</router-link>

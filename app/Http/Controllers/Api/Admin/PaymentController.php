@@ -7,14 +7,14 @@ use App\Http\Requests\Admin\PaymentRequest;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
-use App\Services\DocumentNumberService;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
     public function __construct(
         private PaymentRepository $payments,
-        private DocumentNumberService $numbers,
+        private PaymentService $service,
     ) {}
 
     public function index(Request $request)
@@ -24,12 +24,7 @@ class PaymentController extends Controller
 
     public function store(PaymentRequest $request)
     {
-        $data = $request->validated();
-        $data['number'] = $this->numbers->next('PAY', Payment::class);
-        $data['user_id'] = $request->user()->id;
-        $data['paid_at'] = $data['paid_at'] ?? now();
-
-        return new PaymentResource(Payment::query()->create($data)->load(['customer', 'sale']));
+        return new PaymentResource($this->service->create($request->validated(), $request->user()->id));
     }
 
     public function show(Payment $payment)
@@ -39,16 +34,12 @@ class PaymentController extends Controller
 
     public function update(PaymentRequest $request, Payment $payment)
     {
-        $data = $request->validated();
-        $data['paid_at'] = $data['paid_at'] ?? $payment->paid_at;
-        $payment->update($data);
-
-        return new PaymentResource($payment->fresh(['customer', 'sale']));
+        return new PaymentResource($this->service->update($payment, $request->validated()));
     }
 
     public function destroy(Payment $payment)
     {
-        $payment->delete();
+        $this->service->delete($payment);
 
         return response()->json(['message' => 'Deleted']);
     }
