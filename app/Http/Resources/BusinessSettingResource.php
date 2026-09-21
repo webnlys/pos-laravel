@@ -22,6 +22,7 @@ class BusinessSettingResource extends JsonResource
             'tagline' => $this->tagline,
             'invoice_terms' => $this->invoice_terms,
             'quotation_terms' => $this->quotation_terms,
+            'account_info' => $this->account_info,
             'currencies' => config('currencies.codes'),
         ];
     }

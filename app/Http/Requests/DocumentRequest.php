@@ -79,6 +79,7 @@ class DocumentRequest extends FormRequest
             $rules['tax_mode'] = ['nullable', 'in:none,per_item,overall'];
             $rules['overall_discount'] = ['nullable', 'numeric', 'min:0'];
             $rules['overall_tax_id'] = ['nullable', 'exists:taxes,id', 'required_if:tax_mode,overall'];
+            $rules['include_account_info'] = ['nullable', 'boolean'];
         }
 
         return $rules;

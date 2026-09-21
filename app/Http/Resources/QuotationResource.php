@@ -26,6 +26,7 @@ class QuotationResource extends JsonResource
             'total' => (float) $this->total,
             'status' => $this->status,
             'notes' => $this->notes,
+            'include_account_info' => (bool) $this->include_account_info,
             'converted_sale_id' => $this->converted_sale_id,
             'items' => $this->whenLoaded('items'),
             'taxes' => $this->whenLoaded('taxes'),

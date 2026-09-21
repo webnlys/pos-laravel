@@ -24,6 +24,7 @@ class Quotation extends Model
         'total',
         'status',
         'notes',
+        'include_account_info',
         'converted_sale_id',
     ];
 
@@ -37,6 +38,7 @@ class Quotation extends Model
             'overall_tax_rate_percent' => 'decimal:2',
             'tax_total' => 'decimal:2',
             'total' => 'decimal:2',
+            'include_account_info' => 'boolean',
         ];
     }
 

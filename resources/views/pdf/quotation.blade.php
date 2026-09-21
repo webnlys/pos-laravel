@@ -410,7 +410,7 @@
     </p>
 
     @if($document->notes)
-    <p><strong>Notes:</strong> {{ $document->notes }}</p>
+    <p><strong>Notes:</strong><br>{!! nl2br(e($document->notes)) !!}</p>
     @endif
     @if(count($settings->quotationTermsLines()))
     <div class="terms-footer">
@@ -420,6 +420,13 @@
             <li>{{ $line }}</li>
             @endforeach
         </ul>
+    </div>
+    @endif
+
+    @if($document->include_account_info && $settings->accountInfoText())
+    <div class="terms-footer account-info">
+        <strong>Account Info</strong>
+        <div class="terms-body">{!! nl2br(e($settings->accountInfoText())) !!}</div>
     </div>
     @endif
 

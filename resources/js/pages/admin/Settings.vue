@@ -99,6 +99,11 @@
                     </div>
                     <div class="form-text">Each line is a bullet on quotation PDFs. Press + to add another point.</div>
                 </div>
+                <div class="col-12">
+                    <label class="form-label">Account info</label>
+                    <textarea v-model="form.account_info" class="form-control" rows="4" maxlength="2000"></textarea>
+                    <div class="form-text">Bank / payment details. Can optionally be included at the bottom of a quotation, after the terms and conditions.</div>
+                </div>
             </div>
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
             <button class="btn btn-primary mt-3">Save</button>
@@ -114,7 +119,7 @@ import PageShell from '../../components/PageShell.vue';
 import { useSettingsStore } from '../../stores/settings';
 
 const settings = useSettingsStore();
-const form = reactive({ name: '', email: '', phone: '', website: '', address: '', currency: 'AED', tagline: '' });
+const form = reactive({ name: '', email: '', phone: '', website: '', address: '', currency: 'AED', tagline: '', account_info: '' });
 const termLines = ref(['']);
 const quotationTermLines = ref(['']);
 const currencyOptions = ref({ AED: 'UAE Dirham' });
@@ -133,6 +138,7 @@ onMounted(async () => {
     form.address = data.data.address || '';
     form.currency = data.data.currency || 'AED';
     form.tagline = data.data.tagline || '';
+    form.account_info = data.data.account_info || '';
     termLines.value = splitTerms(data.data.invoice_terms);
     quotationTermLines.value = splitTerms(data.data.quotation_terms);
     currencyOptions.value = data.data.currencies || currencyOptions.value;
@@ -200,6 +206,7 @@ async function save() {
         payload.append('tagline', form.tagline || '');
         payload.append('invoice_terms', joinedTerms());
         payload.append('quotation_terms', joinedQuotationTerms());
+        payload.append('account_info', form.account_info || '');
         if (logoFile.value) payload.append('logo', logoFile.value);
         if (signatureFile.value) payload.append('signature', signatureFile.value);
         const { data } = await axios.post('/api/admin/settings', payload);
@@ -207,6 +214,7 @@ async function save() {
         signatureUrl.value = data.data.signature;
         form.currency = data.data.currency;
         form.tagline = data.data.tagline || '';
+        form.account_info = data.data.account_info || '';
         termLines.value = splitTerms(data.data.invoice_terms);
         quotationTermLines.value = splitTerms(data.data.quotation_terms);
         settings.apply(data.data);

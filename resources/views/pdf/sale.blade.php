@@ -171,7 +171,7 @@
     </p>
 
     @if($document->notes)
-        <p><strong>Notes:</strong> {{ $document->notes }}</p>
+        <p><strong>Notes:</strong><br>{!! nl2br(e($document->notes)) !!}</p>
     @endif
     @if(count($settings->invoiceTermsLines()))
     <div class="terms-footer">

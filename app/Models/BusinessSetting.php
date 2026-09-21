@@ -19,6 +19,7 @@ class BusinessSetting extends Model
         'tagline',
         'invoice_terms',
         'quotation_terms',
+        'account_info',
     ];
 
     public function currencyCode(): string
@@ -75,6 +76,13 @@ class BusinessSetting extends Model
         return array_values(array_filter(array_map('trim', $lines), fn (string $line) => $line !== ''));
     }
 
+    public function accountInfoText(): ?string
+    {
+        $info = trim((string) $this->account_info);
+
+        return $info !== '' ? $info : null;
+    }
+
     public function formatMoney(mixed $amount): string
     {
         return $this->currencyCode().' '.number_format((float) $amount, 2);
@@ -82,7 +90,9 @@ class BusinessSetting extends Model
 
     public function amountInWords(mixed $amount): string
     {
-        return MoneyWords::convert($amount, $this->currencyCode(), false);
+        $words = MoneyWords::convert($amount, $this->currencyCode(), false);
+
+        return preg_replace('/ Only$/', ' '.$this->currencyCode().' Only', $words);
     }
 
     public static function documentTitle(?string $name = null): string

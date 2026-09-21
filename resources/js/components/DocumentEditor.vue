@@ -80,6 +80,10 @@
                 <div class="col-md-6">
                     <label class="form-label">Notes</label>
                     <textarea v-model="form.notes" class="form-control"></textarea>
+                    <div v-if="kind === 'quotation'" class="form-check mt-2">
+                        <input id="include-account-info" v-model="form.include_account_info" type="checkbox" class="form-check-input">
+                        <label class="form-check-label" for="include-account-info">Include account info on this quotation</label>
+                    </div>
                 </div>
                 <div v-if="kind !== 'purchase'" class="col-md-6">
                     <div class="page-card p-3">
@@ -229,6 +233,7 @@ const form = reactive({
     overall_discount: '',
     overall_tax_id: null,
     notes: '',
+    include_account_info: false,
     items: [{ key: 1, product_id: 0, product_name: '', unit_id: 0, unit_name: '', quantity: 1, unit_price: '', unit_cost: 0, discount: '', tax_id: null }],
 });
 const customerForm = reactive({ name: '', phone: '', email: '', address: '' });
@@ -265,6 +270,7 @@ onMounted(async () => {
             form.tax_mode = doc.tax_mode || 'per_item';
             form.overall_discount = doc.overall_discount || '';
             form.overall_tax_id = doc.overall_tax_id || null;
+            form.include_account_info = !!doc.include_account_info;
         }
         form.notes = doc.notes || '';
         convertedSaleId.value = doc.converted_sale_id || null;
@@ -374,6 +380,7 @@ function documentPayload() {
         payload.tax_mode = form.tax_mode;
         payload.overall_discount = form.overall_discount || 0;
         payload.overall_tax_id = form.tax_mode === 'overall' ? (form.overall_tax_id || null) : null;
+        payload.include_account_info = form.include_account_info;
     }
     if (props.kind === 'purchase') payload.supplier_id = form.supplier_id;
     else payload.customer_id = form.customer_id;

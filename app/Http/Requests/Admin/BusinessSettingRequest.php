@@ -24,6 +24,7 @@ class BusinessSettingRequest extends FormRequest
             'tagline' => ['nullable', 'string', 'max:500'],
             'invoice_terms' => ['nullable', 'string', 'max:5000'],
             'quotation_terms' => ['nullable', 'string', 'max:5000'],
+            'account_info' => ['nullable', 'string', 'max:2000'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'signature' => ['nullable', 'image', 'max:2048'],
         ];

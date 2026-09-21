@@ -107,6 +107,23 @@ class BusinessSettingTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_update_account_info(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->postJson('/api/admin/settings', [
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+            'account_info' => "Bank: Desert Bank\nIBAN: AE000000000000000000000",
+        ])->assertSuccessful()
+            ->assertJsonPath('data.account_info', "Bank: Desert Bank\nIBAN: AE000000000000000000000");
+
+        $this->assertDatabaseHas('business_settings', [
+            'name' => 'Desert Shop',
+            'account_info' => "Bank: Desert Bank\nIBAN: AE000000000000000000000",
+        ]);
+    }
+
     public function test_admin_cannot_set_unknown_currency(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -189,7 +206,7 @@ class BusinessSettingTest extends TestCase
         $this->assertStringContainsString('SAR', $html);
         $this->assertStringContainsString('10.00', $html);
         $this->assertStringContainsString('Amount in words', $html);
-        $this->assertStringContainsString('Ten Only', $html);
+        $this->assertStringContainsString('Ten SAR Only', $html);
         $this->assertStringNotContainsString('Saudi Riyals', $html);
         $this->assertStringNotContainsString('UAE Dirhams', $html);
         $this->assertStringNotContainsString('Thank you for your business!', $html);
@@ -267,6 +284,88 @@ class BusinessSettingTest extends TestCase
         $this->assertStringContainsString('Terms and Conditions', $html);
         $this->assertStringContainsString('<li>Prices are valid for 14 days.</li>', $html);
         $this->assertStringNotContainsString('Payment is due within 14 days.', $html);
+    }
+
+    public function test_quotation_pdf_html_includes_account_info_when_enabled(): void
+    {
+        BusinessSetting::query()->create([
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+            'quotation_terms' => 'Prices are valid for 14 days.',
+            'account_info' => "Bank: Desert Bank\nIBAN: AE000000000000000000000",
+        ]);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Walk-in']);
+        $product = Product::query()->create([
+            'name' => 'Panel',
+            'sku' => 'PN-ACC-ON',
+            'sale_price' => 10,
+            'cost_price' => 5,
+            'stock_qty' => 0,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'include_account_info' => true,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 10],
+            ],
+        ])->assertCreated()
+            ->assertJsonPath('data.include_account_info', true);
+
+        $quotation = Quotation::query()->first();
+        $html = view('pdf.quotation', [
+            'document' => $quotation->load(['customer', 'items', 'taxes']),
+            'title' => 'Quotation',
+            'settings' => BusinessSetting::query()->first(),
+        ])->render();
+
+        $this->assertStringContainsString('Account Info', $html);
+        $this->assertStringContainsString('Bank: Desert Bank', $html);
+        $this->assertStringContainsString('IBAN: AE000000000000000000000', $html);
+        $accountInfoPos = strpos($html, 'Account Info');
+        $termsPos = strpos($html, 'Terms and Conditions');
+        $this->assertNotFalse($accountInfoPos);
+        $this->assertNotFalse($termsPos);
+        $this->assertGreaterThan($termsPos, $accountInfoPos);
+    }
+
+    public function test_quotation_pdf_html_hides_account_info_when_disabled(): void
+    {
+        BusinessSetting::query()->create([
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+            'account_info' => "Bank: Desert Bank\nIBAN: AE000000000000000000000",
+        ]);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Walk-in']);
+        $product = Product::query()->create([
+            'name' => 'Panel',
+            'sku' => 'PN-ACC-OFF',
+            'sale_price' => 10,
+            'cost_price' => 5,
+            'stock_qty' => 0,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 10],
+            ],
+        ])->assertCreated()
+            ->assertJsonPath('data.include_account_info', false);
+
+        $quotation = Quotation::query()->first();
+        $html = view('pdf.quotation', [
+            'document' => $quotation->load(['customer', 'items', 'taxes']),
+            'title' => 'Quotation',
+            'settings' => BusinessSetting::query()->first(),
+        ])->render();
+
+        $this->assertStringNotContainsString('Account Info', $html);
+        $this->assertStringNotContainsString('Bank: Desert Bank', $html);
     }
 
     public function test_spa_meta_title_uses_business_name(): void
