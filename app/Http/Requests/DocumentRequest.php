@@ -73,6 +73,7 @@ class DocumentRequest extends FormRequest
             $rules['payment.method'] = ['nullable', 'in:cash,bank,cheque,other'];
             $rules['payment.paid_at'] = ['nullable', 'date'];
             $rules['payment.notes'] = ['nullable', 'string'];
+            $rules['overall_discount'] = ['nullable', 'numeric', 'min:0'];
         }
 
         if ($this->routeIs('admin.quotations.*')) {

@@ -68,6 +68,63 @@ class AdminSaleTest extends TestCase
         $this->assertEquals(10, $product->fresh()->stock_qty);
     }
 
+    public function test_admin_can_apply_and_update_overall_discount_on_a_sale(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Acme']);
+        $product = Product::query()->create([
+            'name' => 'Widget',
+            'sku' => 'WD-OD-001',
+            'sale_price' => 100,
+            'cost_price' => 60,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $create = $this->actingAs($admin)->postJson('/api/admin/sales', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2, 'unit_price' => 100],
+            ],
+            'overall_discount' => 50,
+        ]);
+
+        $create->assertCreated()
+            ->assertJsonPath('data.subtotal', 200)
+            ->assertJsonPath('data.overall_discount', 50)
+            ->assertJsonPath('data.discount', 50)
+            ->assertJsonPath('data.total', 150);
+
+        $this->assertDatabaseHas('sales', [
+            'customer_id' => $customer->id,
+            'overall_discount' => 50,
+            'discount' => 50,
+            'total' => 150,
+        ]);
+
+        $saleId = $create->json('data.id');
+
+        $update = $this->actingAs($admin)->putJson("/api/admin/sales/{$saleId}", [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2, 'unit_price' => 100],
+            ],
+            'overall_discount' => 20,
+        ]);
+
+        $update->assertOk()
+            ->assertJsonPath('data.overall_discount', 20)
+            ->assertJsonPath('data.discount', 20)
+            ->assertJsonPath('data.total', 180);
+
+        $this->assertDatabaseHas('sales', [
+            'id' => $saleId,
+            'overall_discount' => 20,
+            'discount' => 20,
+            'total' => 180,
+        ]);
+    }
+
     public function test_renaming_a_line_item_on_update_is_reflected_in_the_saved_sale(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

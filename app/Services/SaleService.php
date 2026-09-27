@@ -20,7 +20,7 @@ class SaleService
         return DB::transaction(function () use ($data, $userId) {
             $items = $this->normalizer->normalize($data['items']);
             $at = $this->normalizer->parseDatetime($data['document_datetime'] ?? null);
-            $totals = $this->taxes->quotationTotals($items);
+            $totals = $this->taxes->quotationTotals($items, 'per_item', (float) ($data['overall_discount'] ?? 0));
 
             $sale = Sale::query()->create([
                 'number' => $this->numbers->next('INV', Sale::class),
@@ -30,6 +30,7 @@ class SaleService
                 'document_datetime' => $at,
                 'subtotal' => $totals['subtotal'],
                 'discount' => $totals['discount'],
+                'overall_discount' => $totals['overall_discount'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'status' => 'unpaid',
@@ -49,13 +50,18 @@ class SaleService
         return DB::transaction(function () use ($sale, $data, $userId) {
             $items = $this->normalizer->normalize($data['items']);
             $at = $this->normalizer->parseDatetime($data['document_datetime'] ?? $sale->document_datetime);
-            $totals = $this->taxes->quotationTotals($items);
+            $totals = $this->taxes->quotationTotals(
+                $items,
+                'per_item',
+                (float) ($data['overall_discount'] ?? $sale->overall_discount ?? 0),
+            );
 
             $sale->update([
                 'customer_id' => $data['customer_id'] ?? $sale->customer_id,
                 'document_datetime' => $at,
                 'subtotal' => $totals['subtotal'],
                 'discount' => $totals['discount'],
+                'overall_discount' => $totals['overall_discount'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'notes' => $data['notes'] ?? $sale->notes,

@@ -16,6 +16,7 @@ class Sale extends Model
         'document_datetime',
         'subtotal',
         'discount',
+        'overall_discount',
         'tax_total',
         'total',
         'status',
@@ -28,6 +29,7 @@ class Sale extends Model
             'document_datetime' => 'datetime',
             'subtotal' => 'decimal:2',
             'discount' => 'decimal:2',
+            'overall_discount' => 'decimal:2',
             'tax_total' => 'decimal:2',
             'total' => 'decimal:2',
         ];

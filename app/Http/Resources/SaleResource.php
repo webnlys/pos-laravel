@@ -20,6 +20,7 @@ class SaleResource extends JsonResource
             'document_datetime' => $this->document_datetime,
             'subtotal' => (float) $this->subtotal,
             'discount' => (float) $this->discount,
+            'overall_discount' => (float) $this->overall_discount,
             'tax_total' => (float) $this->tax_total,
             'total' => (float) $this->total,
             'status' => $summary['status'],

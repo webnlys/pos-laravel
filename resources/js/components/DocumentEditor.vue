@@ -54,22 +54,24 @@
                 search-url="/api/admin/products"
             />
 
-            <div v-if="kind === 'quotation'" class="row g-3 mt-1">
-                <div class="col-md-4">
-                    <label class="form-label">Tax</label>
-                    <select v-model="form.tax_mode" class="form-select" @change="previewTax">
-                        <option value="none">No tax</option>
-                        <option value="per_item">Per item tax (VAT column)</option>
-                        <option value="overall">Overall tax (on subtotal)</option>
-                    </select>
-                </div>
-                <div v-if="form.tax_mode === 'overall'" class="col-md-4">
-                    <label class="form-label">Overall tax</label>
-                    <select v-model.number="form.overall_tax_id" class="form-select" @change="previewTax">
-                        <option :value="null">Select tax</option>
-                        <option v-for="tax in taxes" :key="tax.id" :value="tax.id">{{ tax.name }} ({{ tax.rate_percent }}%)</option>
-                    </select>
-                </div>
+            <div v-if="isLineDocument" class="row g-3 mt-1">
+                <template v-if="kind === 'quotation'">
+                    <div class="col-md-4">
+                        <label class="form-label">Tax</label>
+                        <select v-model="form.tax_mode" class="form-select" @change="previewTax">
+                            <option value="none">No tax</option>
+                            <option value="per_item">Per item tax (VAT column)</option>
+                            <option value="overall">Overall tax (on subtotal)</option>
+                        </select>
+                    </div>
+                    <div v-if="form.tax_mode === 'overall'" class="col-md-4">
+                        <label class="form-label">Overall tax</label>
+                        <select v-model.number="form.overall_tax_id" class="form-select" @change="previewTax">
+                            <option :value="null">Select tax</option>
+                            <option v-for="tax in taxes" :key="tax.id" :value="tax.id">{{ tax.name }} ({{ tax.rate_percent }}%)</option>
+                        </select>
+                    </div>
+                </template>
                 <div class="col-md-4">
                     <label class="form-label">Overall discount ({{ settings.currency }})</label>
                     <input v-model.number="form.overall_discount" type="text" inputmode="decimal" class="form-control" @change="previewTax">
@@ -268,9 +270,11 @@ onMounted(async () => {
         form.supplier_id = doc.supplier_id || 0;
         form.document_datetime = String(doc.document_datetime).slice(0, 16);
         form.discount = doc.discount || 0;
+        if (isLineDocument.value) {
+            form.overall_discount = doc.overall_discount || '';
+        }
         if (props.kind === 'quotation') {
             form.tax_mode = doc.tax_mode || 'per_item';
-            form.overall_discount = doc.overall_discount || '';
             form.overall_tax_id = doc.overall_tax_id || null;
             form.include_account_info = !!doc.include_account_info;
         }
@@ -358,9 +362,11 @@ async function previewTax() {
             tax_id: i.tax_id || null,
         })),
     };
+    if (isLineDocument.value) {
+        payload.overall_discount = form.overall_discount || 0;
+    }
     if (props.kind === 'quotation') {
         payload.tax_mode = form.tax_mode;
-        payload.overall_discount = form.overall_discount || 0;
         payload.overall_tax_id = form.tax_mode === 'overall' ? (form.overall_tax_id || null) : null;
     }
     const { data } = await axios.post('/api/tax-preview', payload);
@@ -384,9 +390,11 @@ function documentPayload() {
         })),
     };
     if (!isLineDocument.value) payload.discount = form.discount || 0;
+    if (isLineDocument.value) {
+        payload.overall_discount = form.overall_discount || 0;
+    }
     if (props.kind === 'quotation') {
         payload.tax_mode = form.tax_mode;
-        payload.overall_discount = form.overall_discount || 0;
         payload.overall_tax_id = form.tax_mode === 'overall' ? (form.overall_tax_id || null) : null;
         payload.include_account_info = form.include_account_info;
     }
