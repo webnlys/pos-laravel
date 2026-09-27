@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('taxes', TaxController::class);
         Route::apiResource('units', UnitController::class);
         Route::apiResource('payments', PaymentController::class);
+        Route::get('payments/{payment}/pdf', [PaymentController::class, 'pdf'])->name('payments.pdf');
         Route::apiResource('purchases', PurchaseController::class);
         Route::apiResource('sales', SaleController::class);
         Route::get('sales/{sale}/pdf', [SaleController::class, 'pdf'])->name('sales.pdf');

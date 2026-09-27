@@ -62,6 +62,10 @@
                             <option value="other">Other</option>
                         </select>
                     </div>
+                    <div class="col-12">
+                        <label class="form-label">Notes</label>
+                        <input v-model="payment.notes" class="form-control" placeholder="Optional">
+                    </div>
                     <div class="col-md-4">
                         <button class="btn btn-primary w-100" :disabled="savingPayment">{{ savingPayment ? 'Saving...' : 'Receive' }}</button>
                     </div>
@@ -88,7 +92,10 @@
                                 <td data-label="Method">{{ row.method }}</td>
                                 <td data-label="Amount">{{ (row.amount) }}</td>
                                 <td class="stack-actions">
-                                    <button class="btn btn-outline-danger btn-sm" @click="destroyPayment(row.id)">Delete</button>
+                                    <div class="mobile-actions">
+                                        <a class="btn btn-outline-secondary btn-sm" :href="pdfUrl(`/api/admin/payments/${row.id}/pdf`)" download>Receipt</a>
+                                        <button class="btn btn-outline-danger btn-sm" @click="destroyPayment(row.id)">Delete</button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -126,6 +133,7 @@ const savingPayment = ref(false);
 const payment = reactive({
     amount: 0,
     method: 'cash',
+    notes: '',
 });
 
 function money(value) {
@@ -155,7 +163,9 @@ async function receivePayment() {
             sale_id: doc.value.id,
             amount: payment.amount,
             method: payment.method,
+            notes: payment.notes || null,
         });
+        payment.notes = '';
         await load();
     } catch (e) {
         error.value = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Payment failed';

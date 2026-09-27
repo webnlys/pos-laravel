@@ -250,6 +250,55 @@ class AdminSaleTest extends TestCase
         );
     }
 
+    public function test_payment_notes_are_saved_and_receipt_pdf_can_be_downloaded(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Receipt Customer']);
+        $product = Product::query()->create([
+            'name' => 'Widget',
+            'sku' => 'WD-RCPT-001',
+            'sale_price' => 100,
+            'cost_price' => 60,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $sale = $this->actingAs($admin)->postJson('/api/admin/sales', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ])->assertCreated();
+
+        $payment = $this->actingAs($admin)->postJson('/api/admin/payments', [
+            'customer_id' => $customer->id,
+            'sale_id' => $sale->json('data.id'),
+            'amount' => 50,
+            'method' => 'bank',
+            'notes' => 'Paid via bank transfer, ref #1234',
+        ]);
+
+        $payment->assertCreated()
+            ->assertJsonPath('data.notes', 'Paid via bank transfer, ref #1234');
+
+        $this->assertDatabaseHas('payments', [
+            'sale_id' => $sale->json('data.id'),
+            'amount' => 50,
+            'notes' => 'Paid via bank transfer, ref #1234',
+        ]);
+
+        $paymentId = $payment->json('data.id');
+        $paymentNumber = $payment->json('data.number');
+
+        $pdf = $this->actingAs($admin)->get("/api/admin/payments/{$paymentId}/pdf");
+
+        $pdf->assertOk();
+        $this->assertStringContainsString(
+            'filename="Receipt_Customer-receipt-'.$paymentNumber.'.pdf"',
+            $pdf->headers->get('Content-Disposition'),
+        );
+    }
+
     public function test_sale_payments_support_paid_partial_and_advance(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

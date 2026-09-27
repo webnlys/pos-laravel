@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BusinessSetting;
+use App\Models\Payment;
 use App\Models\Quotation;
 use App\Models\Sale;
 use App\Support\PdfFilename;
@@ -30,6 +31,17 @@ class PdfService
             'title' => 'Quotation',
             'settings' => $this->settings(),
         ], PdfFilename::build($quotation->customer?->name, 'quotation', $quotation->number));
+    }
+
+    public function paymentReceipt(Payment $payment): string
+    {
+        $payment->load(['customer', 'sale']);
+
+        return $this->render('pdf.payment', [
+            'payment' => $payment,
+            'title' => 'Payment Receipt',
+            'settings' => $this->settings(),
+        ], PdfFilename::build($payment->customer?->name, 'receipt', $payment->number));
     }
 
     /**

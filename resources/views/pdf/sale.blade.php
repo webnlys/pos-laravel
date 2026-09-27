@@ -41,9 +41,10 @@
         .print-footer { clear: both; text-align: center; color: #555; margin-top: 24px; padding-top: 8px; border-top: 1px solid #ccc; }
         .print-footer .print-date { font-size: 11px; color: #888; margin-top: 2px; }
         .barcode-img { width: 40mm; height: 8mm; }
-        .doc-status-banner { text-align: center; padding: 2px 0 10px; margin: 0 0 16px; font-size: 19px; font-weight: bold; }
+        .doc-status-banner { text-align: center; margin: 0 0 7px; font-size: 19px; font-weight: bold; }
         .doc-status-banner .doc-type { color: #0d6efd; }
         .doc-status-banner .doc-status { margin-left: 4px; }
+        .doc-status-divider { border: none; border-top: 2px solid #000; margin: 0 0 10px; }
         .status-converted, .status-paid { color: #198754; }
         .status-unpaid { color: #dc3545; }
         .status-partial { color: #fd7e14; }
@@ -82,7 +83,7 @@
                 <table class="info-table" cellspacing="0" cellpadding="0">
                     <tr><td class="line-barcode" align="right"><img class="barcode-img" src="{{ \App\Support\BarcodeImage::dataUri($document->number) }}" alt="barcode"></td></tr>
                     <tr><td align="right"><strong>Invoice No: </strong>{{ $document->number }}</td></tr>
-                    <tr><td align="right" style="padding-bottom: 0;"><strong>Date: </strong>{{ $document->document_datetime?->format('d M Y, h:i A') }}</td></tr>
+                    <tr><td align="right" style="padding-bottom: 0;"><strong>Date: </strong>{{ $document->document_datetime?->format('d M Y') }}</td></tr>
                 </table>
             </td>
         </tr>
@@ -92,8 +93,9 @@
         <span class="doc-type">{{ $title }}</span>
         <span class="doc-status status-{{ $document->paymentStatus() }}">({{ ucfirst($document->paymentStatus()) }})</span>
     </div>
+    <hr class="doc-status-divider">
 
-    <p style="margin-top: 20px; margin-bottom: 20px;">
+    <p style="margin-top: 4px; margin-bottom: 20px;">
         <strong>Customer:</strong> {{ $document->customer?->name }}<br>
         @if($document->customer?->email)<strong>Email: </strong>{{ $document->customer->email }}<br>@endif
         @if($document->customer?->phone)<strong>Phone: </strong>{{ $document->customer->phone }}<br>@endif

@@ -8,6 +8,8 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
 use App\Services\PaymentService;
+use App\Services\PdfService;
+use App\Support\PdfFilename;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -15,6 +17,7 @@ class PaymentController extends Controller
     public function __construct(
         private PaymentRepository $payments,
         private PaymentService $service,
+        private PdfService $pdf,
     ) {}
 
     public function index(Request $request)
@@ -42,5 +45,18 @@ class PaymentController extends Controller
         $this->service->delete($payment);
 
         return response()->json(['message' => 'Deleted']);
+    }
+
+    public function pdf(Payment $payment)
+    {
+        $binary = $this->pdf->paymentReceipt($payment);
+        $filename = PdfFilename::build($payment->customer?->name, 'receipt', $payment->number);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ]);
     }
 }

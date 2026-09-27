@@ -57,11 +57,12 @@
                             <th>Amount</th>
                             <th>Method</th>
                             <th>Invoice</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="!(customer.payments || []).length">
-                            <td colspan="5" class="text-center text-muted">No payments.</td>
+                            <td colspan="6" class="text-center text-muted">No payments.</td>
                         </tr>
                         <tr v-for="row in customer.payments" :key="row.id">
                             <td data-label="Number">{{ row.number }}</td>
@@ -69,6 +70,9 @@
                             <td data-label="Amount">{{ money(row.amount) }}</td>
                             <td data-label="Method">{{ row.method }}</td>
                             <td data-label="Invoice">{{ row.sale?.number || 'Advance' }}</td>
+                            <td class="stack-actions">
+                                <a class="btn btn-outline-secondary btn-sm" :href="pdfUrl(`/api/admin/payments/${row.id}/pdf`)" download>Receipt</a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -89,6 +93,7 @@ import { useRoute } from 'vue-router';
 import PageShell from '../../../components/PageShell.vue';
 import PaymentBadge from '../../../components/PaymentBadge.vue';
 import { useSettingsStore } from '../../../stores/settings';
+import { pdfUrl } from '../../../utils/pdfLink';
 
 const route = useRoute();
 const settings = useSettingsStore();

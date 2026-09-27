@@ -33,6 +33,7 @@
                         <td data-label="Invoice">{{ row.sale?.number || 'Advance' }}</td>
                         <td class="stack-actions">
                             <div class="mobile-actions">
+                                <a class="btn btn-outline-secondary btn-sm" :href="pdfUrl(`/api/admin/payments/${row.id}/pdf`)" download>Receipt</a>
                                 <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.payments.edit', params: { id: row.id } }">Edit</router-link>
                                 <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
                             </div>
@@ -52,6 +53,7 @@ import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
 import { usePagedList } from '../../../composables/usePagedList';
 import { useSettingsStore } from '../../../stores/settings';
+import { pdfUrl } from '../../../utils/pdfLink';
 
 const settings = useSettingsStore();
 const { rows, meta, q, perPage, load } = usePagedList('/api/admin/payments');
