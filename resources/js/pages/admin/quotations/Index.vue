@@ -22,7 +22,8 @@
                         <td class="stack-actions">
                             <div class="mobile-actions">
                                 <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.show', params: { id: row.id } }">View</router-link>
-                                <a class="btn btn-outline-dark btn-sm" :href="`/api/admin/quotations/${row.id}/pdf`" target="_blank">PDF</a>
+                                <a class="btn btn-outline-dark btn-sm" :href="`/api/admin/quotations/${row.id}/pdf`" target="_blank" @click.prevent="printPdf(row.id)">PDF</a>
+                                <a class="btn btn-outline-secondary btn-sm" :href="pdfUrl(`/api/admin/quotations/${row.id}/pdf`)" download>Download</a>
                                 <router-link v-if="!row.converted_sale_id" class="btn btn-outline-info btn-sm" :to="{ name: 'admin.quotations.edit', params: { id: row.id } }">Edit</router-link>
                                 <button v-if="!row.converted_sale_id" class="btn btn-primary btn-sm" :disabled="convertingId === row.id" @click="convert(row)">
                                     {{ convertingId === row.id ? 'Converting...' : 'Convert' }}
@@ -48,6 +49,7 @@ import PageShell from '../../../components/PageShell.vue';
 import PaginationBar from '../../../components/PaginationBar.vue';
 import { usePagedList } from '../../../composables/usePagedList';
 import { useSettingsStore } from '../../../stores/settings';
+import { pdfUrl } from '../../../utils/pdfLink';
 
 const router = useRouter();
 const settings = useSettingsStore();
@@ -56,6 +58,10 @@ const { rows, meta, q, perPage, load } = usePagedList('/api/admin/quotations');
 
 function money(value) {
     return settings.formatMoney(value);
+}
+
+function printPdf(id) {
+    window.open(pdfUrl(`/api/admin/quotations/${id}/pdf`), '_blank', 'noopener');
 }
 
 async function convert(row) {

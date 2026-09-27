@@ -17,7 +17,7 @@
         >
         <Teleport to="body">
             <ul
-                v-if="openList && (suggestions.length || canCreate)"
+                v-if="openList && suggestions.length"
                 class="product-suggest-list"
                 :style="menuStyle"
             >
@@ -29,13 +29,6 @@
                 >
                     <span>{{ product.name }}</span>
                     <small v-if="product.sku" class="text-muted">{{ product.sku }}</small>
-                </li>
-                <li
-                    v-if="canCreate"
-                    :class="{ active: highlighted === suggestions.length }"
-                    @mousedown.prevent="useTypedName"
-                >
-                    Use “{{ trimmedQuery }}” as new product
                 </li>
             </ul>
         </Teleport>
@@ -97,8 +90,6 @@ const exactMatch = computed(() => {
     }
     return catalog.value.find((product) => String(product.name || '').toLowerCase() === term) || null;
 });
-
-const canCreate = computed(() => props.allowCreate && trimmedQuery.value !== '' && !exactMatch.value);
 
 watch(() => props.productName, (value) => {
     if (document.activeElement === inputEl.value && openList.value) {
@@ -206,7 +197,7 @@ function onFocusOut() {
 }
 
 function move(step) {
-    const count = suggestions.value.length + (canCreate.value ? 1 : 0);
+    const count = suggestions.value.length;
     if (!count) {
         return;
     }
@@ -218,10 +209,6 @@ function move(step) {
 function confirmHighlighted() {
     if (!openList.value) {
         commitTyped();
-        return;
-    }
-    if (canCreate.value && highlighted.value === suggestions.value.length) {
-        useTypedName();
         return;
     }
     const product = suggestions.value[highlighted.value];

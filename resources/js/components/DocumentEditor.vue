@@ -135,7 +135,8 @@
             <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
             <div class="form-actions mt-3">
                 <button class="btn btn-primary" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
-                <a v-if="id && isLineDocument" class="btn btn-outline-dark" :href="`${resource}/${id}/pdf`" target="_blank">Print</a>
+                <a v-if="id && isLineDocument" class="btn btn-outline-dark" :href="`${resource}/${id}/pdf`" target="_blank" @click.prevent="printPdf">Print</a>
+                <a v-if="id && isLineDocument" class="btn btn-outline-secondary" :href="downloadHref" download>Download PDF</a>
                 <button
                     v-if="kind === 'quotation' && id && !convertedSaleId"
                     type="button"
@@ -195,6 +196,7 @@ import LineItems from './LineItems.vue';
 import PageShell from './PageShell.vue';
 import PaymentBadge from './PaymentBadge.vue';
 import { paymentSummary } from '../utils/paymentStatus';
+import { pdfUrl } from '../utils/pdfLink';
 import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
@@ -300,6 +302,12 @@ watch(() => form.items, previewTax, { deep: true });
 function money(value) {
     return settings.formatMoney(value);
 }
+
+function printPdf() {
+    window.open(pdfUrl(`${resource}/${props.id}/pdf`), '_blank', 'noopener');
+}
+
+const downloadHref = computed(() => pdfUrl(`${resource}/${props.id}/pdf`));
 
 function emptyCustomerForm() {
     Object.assign(customerForm, { name: '', phone: '', email: '', address: '' });

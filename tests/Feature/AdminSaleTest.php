@@ -68,6 +68,46 @@ class AdminSaleTest extends TestCase
         $this->assertEquals(10, $product->fresh()->stock_qty);
     }
 
+    public function test_renaming_a_line_item_on_update_is_reflected_in_the_saved_sale(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Acme']);
+        $product = Product::query()->create([
+            'name' => 'Curtain A',
+            'sku' => 'CA-SALE-001',
+            'sale_price' => 100,
+            'cost_price' => 60,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $create = $this->actingAs($admin)->postJson('/api/admin/sales', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'product_name' => 'Curtain A', 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ])->assertCreated();
+
+        $saleId = $create->json('data.id');
+
+        $update = $this->actingAs($admin)->putJson("/api/admin/sales/{$saleId}", [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'product_name' => 'Curtain A - Blackout', 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ]);
+
+        $update->assertOk()->assertJsonPath('data.items.0.product_name', 'Curtain A - Blackout');
+        $this->assertDatabaseHas('sale_items', [
+            'sale_id' => $saleId,
+            'product_id' => $product->id,
+            'product_name' => 'Curtain A - Blackout',
+        ]);
+
+        $pdf = $this->actingAs($admin)->get("/api/admin/sales/{$saleId}/pdf");
+        $pdf->assertOk();
+    }
+
     public function test_admin_can_convert_quotation_to_sale_and_keep_line_details(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

@@ -97,7 +97,8 @@
             </div>
 
             <div class="form-actions">
-                <a class="btn btn-outline-dark" :href="`/api/admin/sales/${doc.id}/pdf`" target="_blank">Print</a>
+                <a class="btn btn-outline-dark" :href="`/api/admin/sales/${doc.id}/pdf`" target="_blank" @click.prevent="printPdf">Print</a>
+                <a class="btn btn-outline-secondary" :href="downloadHref" download>Download PDF</a>
                 <router-link class="btn btn-outline-info" :to="{ name: 'admin.sales.edit', params: { id: doc.id } }">Edit</router-link>
                 <button class="btn btn-outline-danger" @click="destroy">Delete</button>
             </div>
@@ -108,12 +109,13 @@
 
 <script setup>
 import axios from 'axios';
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useRoute, useRouter } from 'vue-router';
 import PageShell from '../../../components/PageShell.vue';
 import PaymentBadge from '../../../components/PaymentBadge.vue';
 import { useSettingsStore } from '../../../stores/settings';
+import { pdfUrl } from '../../../utils/pdfLink';
 
 const route = useRoute();
 const router = useRouter();
@@ -129,6 +131,12 @@ const payment = reactive({
 function money(value) {
     return settings.formatMoney(value);
 }
+
+function printPdf() {
+    window.open(pdfUrl(`/api/admin/sales/${doc.value.id}/pdf`), '_blank', 'noopener');
+}
+
+const downloadHref = computed(() => pdfUrl(`/api/admin/sales/${doc.value.id}/pdf`));
 
 async function load() {
     const { data } = await axios.get(`/api/admin/sales/${route.params.id}`);

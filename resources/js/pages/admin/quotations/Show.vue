@@ -39,7 +39,8 @@
                 <div class="fw-bold"><span>Total</span><span>{{ money(doc.total) }}</span></div>
             </div>
             <div class="form-actions">
-                <a class="btn btn-outline-dark" :href="`/api/admin/quotations/${doc.id}/pdf`" target="_blank">Print</a>
+                <a class="btn btn-outline-dark" :href="`/api/admin/quotations/${doc.id}/pdf`" target="_blank" @click.prevent="printPdf">Print</a>
+                <a class="btn btn-outline-secondary" :href="downloadHref" download>Download PDF</a>
                 <router-link v-if="!doc.converted_sale_id" class="btn btn-outline-info" :to="{ name: 'admin.quotations.edit', params: { id: doc.id } }">Edit</router-link>
                 <button v-if="!doc.converted_sale_id" class="btn btn-primary" :disabled="converting" @click="convert">
                     {{ converting ? 'Converting...' : 'Convert to sale' }}
@@ -59,6 +60,7 @@ import Swal from 'sweetalert2';
 import { useRoute, useRouter } from 'vue-router';
 import PageShell from '../../../components/PageShell.vue';
 import { useSettingsStore } from '../../../stores/settings';
+import { pdfUrl } from '../../../utils/pdfLink';
 
 const route = useRoute();
 const router = useRouter();
@@ -89,6 +91,12 @@ const taxLabel = computed(() => {
 function money(value) {
     return settings.formatMoney(value);
 }
+
+function printPdf() {
+    window.open(pdfUrl(`/api/admin/quotations/${doc.value.id}/pdf`), '_blank', 'noopener');
+}
+
+const downloadHref = computed(() => pdfUrl(`/api/admin/quotations/${doc.value.id}/pdf`));
 
 onMounted(async () => {
     const { data } = await axios.get(`/api/admin/quotations/${route.params.id}`);

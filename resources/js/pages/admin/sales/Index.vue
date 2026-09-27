@@ -38,7 +38,8 @@
                         <td class="stack-actions">
                             <div class="mobile-actions">
                                 <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.sales.show', params: { id: row.id } }">View</router-link>
-                                <a class="btn btn-outline-dark btn-sm" :href="`/api/admin/sales/${row.id}/pdf`" target="_blank">PDF</a>
+                                <a class="btn btn-outline-dark btn-sm" :href="`/api/admin/sales/${row.id}/pdf`" target="_blank" @click.prevent="printPdf(row.id)">PDF</a>
+                                <a class="btn btn-outline-secondary btn-sm" :href="pdfUrl(`/api/admin/sales/${row.id}/pdf`)" download>Download</a>
                                 <router-link class="btn btn-outline-info btn-sm" :to="{ name: 'admin.sales.edit', params: { id: row.id } }">Edit</router-link>
                                 <button class="btn btn-outline-danger btn-sm" @click="destroy(row.id)">Delete</button>
                             </div>
@@ -59,12 +60,17 @@ import PaginationBar from '../../../components/PaginationBar.vue';
 import PaymentBadge from '../../../components/PaymentBadge.vue';
 import { usePagedList } from '../../../composables/usePagedList';
 import { useSettingsStore } from '../../../stores/settings';
+import { pdfUrl } from '../../../utils/pdfLink';
 
 const settings = useSettingsStore();
 const { rows, meta, q, perPage, load } = usePagedList('/api/admin/sales');
 
 function money(value) {
     return settings.formatMoney(value);
+}
+
+function printPdf(id) {
+    window.open(pdfUrl(`/api/admin/sales/${id}/pdf`), '_blank', 'noopener');
 }
 
 async function destroy(id) {

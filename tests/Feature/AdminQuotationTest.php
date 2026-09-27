@@ -161,6 +161,46 @@ class AdminQuotationTest extends TestCase
         ]);
     }
 
+    public function test_renaming_a_line_item_on_update_is_reflected_in_the_saved_quotation(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Acme']);
+        $product = Product::query()->create([
+            'name' => 'Curtain A',
+            'sku' => 'CA-001',
+            'sale_price' => 100,
+            'cost_price' => 60,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $create = $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'product_name' => 'Curtain A', 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ])->assertCreated();
+
+        $quotationId = $create->json('data.id');
+
+        $update = $this->actingAs($admin)->putJson("/api/admin/quotations/{$quotationId}", [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'product_name' => 'Curtain A - Blackout', 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ]);
+
+        $update->assertOk()->assertJsonPath('data.items.0.product_name', 'Curtain A - Blackout');
+        $this->assertDatabaseHas('quotation_items', [
+            'quotation_id' => $quotationId,
+            'product_id' => $product->id,
+            'product_name' => 'Curtain A - Blackout',
+        ]);
+
+        $pdf = $this->actingAs($admin)->get("/api/admin/quotations/{$quotationId}/pdf");
+        $pdf->assertOk();
+    }
+
     public function test_admin_can_create_unit_and_attach_it_to_product_and_quotation(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

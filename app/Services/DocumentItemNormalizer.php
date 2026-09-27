@@ -54,10 +54,15 @@ class DocumentItemNormalizer
                 ? (float) $item['unit_cost']
                 : (float) $product->cost_price;
 
+            $typedName = trim((string) ($item['product_name'] ?? ''));
+            $productName = ($item['product_id'] ?? null) && $typedName !== ''
+                ? $typedName
+                : $product->name;
+
             $normalized[] = [
                 'product' => $product,
                 'product_id' => $product->id,
-                'product_name' => $product->name,
+                'product_name' => $productName,
                 'unit_id' => $unit?->id,
                 'unit_name' => $unit?->name,
                 'quantity' => $quantity,
