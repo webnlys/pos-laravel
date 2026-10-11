@@ -21,6 +21,9 @@ class Sale extends Model
         'total',
         'status',
         'notes',
+        'include_account_info',
+        'delivery_required',
+        'fixing_required',
     ];
 
     protected function casts(): array
@@ -32,6 +35,9 @@ class Sale extends Model
             'overall_discount' => 'decimal:2',
             'tax_total' => 'decimal:2',
             'total' => 'decimal:2',
+            'include_account_info' => 'boolean',
+            'delivery_required' => 'boolean',
+            'fixing_required' => 'boolean',
         ];
     }
 

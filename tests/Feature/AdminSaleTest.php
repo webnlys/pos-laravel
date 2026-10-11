@@ -68,6 +68,127 @@ class AdminSaleTest extends TestCase
         $this->assertEquals(10, $product->fresh()->stock_qty);
     }
 
+    public function test_sale_delivery_and_fixing_flags_are_saved_and_shown_on_pdf(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Acme']);
+        $product = Product::query()->create([
+            'name' => 'Curtain',
+            'sku' => 'CT-DF-SALE',
+            'sale_price' => 100,
+            'cost_price' => 60,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $create = $this->actingAs($admin)->postJson('/api/admin/sales', [
+            'customer_id' => $customer->id,
+            'delivery_required' => false,
+            'fixing_required' => true,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ]);
+
+        $create->assertCreated()
+            ->assertJsonPath('data.delivery_required', false)
+            ->assertJsonPath('data.fixing_required', true);
+
+        $sale = Sale::query()->first();
+        $this->assertDatabaseHas('sales', [
+            'id' => $sale->id,
+            'delivery_required' => false,
+            'fixing_required' => true,
+        ]);
+
+        $html = view('pdf.sale', [
+            'document' => $sale->load(['customer', 'items', 'taxes']),
+            'title' => 'Sales Invoice',
+            'settings' => BusinessSetting::query()->first() ?? new BusinessSetting(['name' => 'Test', 'currency' => 'AED']),
+        ])->render();
+
+        preg_match('/<td class="df-head">Delivery<\/td>.*?<\/tr>/s', $html, $deliveryRow);
+        preg_match('/<td class="df-head">Fix<\/td>.*?<\/tr>/s', $html, $fixRow);
+        $this->assertNotEmpty($deliveryRow);
+        $this->assertNotEmpty($fixRow);
+        $this->assertStringContainsString('Yes <span class="df-box"></span>', $deliveryRow[0]);
+        $this->assertStringContainsString('No <span class="df-box">✓</span>', $deliveryRow[0]);
+        $this->assertStringContainsString('Yes <span class="df-box">✓</span>', $fixRow[0]);
+        $this->assertStringContainsString('No <span class="df-box"></span>', $fixRow[0]);
+        $this->assertLessThan(strpos($html, 'signature-block'), strpos($html, 'delivery-fixing-box'));
+
+        $update = $this->actingAs($admin)->putJson("/api/admin/sales/{$sale->id}", [
+            'customer_id' => $customer->id,
+            'delivery_required' => true,
+            'fixing_required' => false,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ]);
+
+        $update->assertOk()
+            ->assertJsonPath('data.delivery_required', true)
+            ->assertJsonPath('data.fixing_required', false);
+    }
+
+    public function test_sale_can_include_account_info_on_the_invoice_pdf(): void
+    {
+        BusinessSetting::query()->create([
+            'name' => 'Desert Shop',
+            'currency' => 'AED',
+            'account_info' => "Bank: Desert Bank\nIBAN: AE000000000000000000000",
+        ]);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Walk-in']);
+        $product = Product::query()->create([
+            'name' => 'Panel',
+            'sku' => 'PN-SALE-ACC',
+            'sale_price' => 10,
+            'cost_price' => 5,
+            'stock_qty' => 0,
+            'is_active' => true,
+        ]);
+
+        $create = $this->actingAs($admin)->postJson('/api/admin/sales', [
+            'customer_id' => $customer->id,
+            'include_account_info' => true,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 10],
+            ],
+        ]);
+
+        $create->assertCreated()->assertJsonPath('data.include_account_info', true);
+
+        $this->assertDatabaseHas('sales', [
+            'customer_id' => $customer->id,
+            'include_account_info' => true,
+        ]);
+
+        $sale = Sale::query()->first();
+        $html = view('pdf.sale', [
+            'document' => $sale->load(['customer', 'items', 'taxes']),
+            'title' => 'Sales Invoice',
+            'settings' => BusinessSetting::query()->first(),
+        ])->render();
+
+        $this->assertStringContainsString('Account Info', $html);
+        $this->assertStringContainsString('Bank: Desert Bank', $html);
+
+        $update = $this->actingAs($admin)->putJson("/api/admin/sales/{$sale->id}", [
+            'customer_id' => $customer->id,
+            'include_account_info' => false,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 10],
+            ],
+        ]);
+
+        $update->assertOk()->assertJsonPath('data.include_account_info', false);
+        $this->assertDatabaseHas('sales', [
+            'id' => $sale->id,
+            'include_account_info' => false,
+        ]);
+    }
+
     public function test_admin_can_apply_and_update_overall_discount_on_a_sale(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

@@ -82,9 +82,31 @@
                 <div class="col-md-6">
                     <label class="form-label">Notes</label>
                     <textarea v-model="form.notes" class="form-control"></textarea>
-                    <div v-if="kind === 'quotation'" class="form-check mt-2">
+                    <div v-if="isLineDocument" class="form-check mt-2">
                         <input id="include-account-info" v-model="form.include_account_info" type="checkbox" class="form-check-input">
-                        <label class="form-check-label" for="include-account-info">Include account info on this quotation</label>
+                        <label class="form-check-label" for="include-account-info">Include account info on this {{ kind }}</label>
+                    </div>
+                    <div v-if="isLineDocument" class="mt-3">
+                        <label class="form-label d-block">Delivery?</label>
+                        <div class="form-check form-check-inline">
+                            <input id="delivery-yes" v-model="form.delivery_required" :value="true" type="radio" class="form-check-input">
+                            <label class="form-check-label" for="delivery-yes">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input id="delivery-no" v-model="form.delivery_required" :value="false" type="radio" class="form-check-input">
+                            <label class="form-check-label" for="delivery-no">No</label>
+                        </div>
+                    </div>
+                    <div v-if="isLineDocument" class="mt-2">
+                        <label class="form-label d-block">Fixing?</label>
+                        <div class="form-check form-check-inline">
+                            <input id="fixing-yes" v-model="form.fixing_required" :value="true" type="radio" class="form-check-input">
+                            <label class="form-check-label" for="fixing-yes">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input id="fixing-no" v-model="form.fixing_required" :value="false" type="radio" class="form-check-input">
+                            <label class="form-check-label" for="fixing-no">No</label>
+                        </div>
                     </div>
                 </div>
                 <div v-if="kind !== 'purchase'" class="col-md-6">
@@ -238,6 +260,8 @@ const form = reactive({
     overall_tax_id: null,
     notes: '',
     include_account_info: false,
+    delivery_required: false,
+    fixing_required: false,
     items: [{ key: 1, product_id: 0, product_name: '', unit_id: 0, unit_name: '', quantity: 1, unit_price: '', unit_cost: 0, discount: '', tax_id: null }],
 });
 const customerForm = reactive({ name: '', phone: '', email: '', address: '' });
@@ -272,11 +296,13 @@ onMounted(async () => {
         form.discount = doc.discount || 0;
         if (isLineDocument.value) {
             form.overall_discount = doc.overall_discount || '';
+            form.include_account_info = !!doc.include_account_info;
+            form.delivery_required = !!doc.delivery_required;
+            form.fixing_required = !!doc.fixing_required;
         }
         if (props.kind === 'quotation') {
             form.tax_mode = doc.tax_mode || 'per_item';
             form.overall_tax_id = doc.overall_tax_id || null;
-            form.include_account_info = !!doc.include_account_info;
         }
         form.notes = doc.notes || '';
         convertedSaleId.value = doc.converted_sale_id || null;
@@ -392,11 +418,13 @@ function documentPayload() {
     if (!isLineDocument.value) payload.discount = form.discount || 0;
     if (isLineDocument.value) {
         payload.overall_discount = form.overall_discount || 0;
+        payload.include_account_info = form.include_account_info;
+        payload.delivery_required = form.delivery_required;
+        payload.fixing_required = form.fixing_required;
     }
     if (props.kind === 'quotation') {
         payload.tax_mode = form.tax_mode;
         payload.overall_tax_id = form.tax_mode === 'overall' ? (form.overall_tax_id || null) : null;
-        payload.include_account_info = form.include_account_info;
     }
     if (props.kind === 'purchase') payload.supplier_id = form.supplier_id;
     else payload.customer_id = form.customer_id;

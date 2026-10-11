@@ -201,6 +201,73 @@ class AdminQuotationTest extends TestCase
         $pdf->assertOk();
     }
 
+    public function test_quotation_delivery_and_fixing_flags_are_saved_and_shown_on_pdf(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Acme']);
+        $product = Product::query()->create([
+            'name' => 'Curtain',
+            'sku' => 'CT-DF-001',
+            'sale_price' => 100,
+            'cost_price' => 60,
+            'stock_qty' => 10,
+            'is_active' => true,
+        ]);
+
+        $create = $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'delivery_required' => true,
+            'fixing_required' => false,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ]);
+
+        $create->assertCreated()
+            ->assertJsonPath('data.delivery_required', true)
+            ->assertJsonPath('data.fixing_required', false);
+
+        $quotation = Quotation::query()->first();
+        $this->assertDatabaseHas('quotations', [
+            'id' => $quotation->id,
+            'delivery_required' => true,
+            'fixing_required' => false,
+        ]);
+
+        $html = view('pdf.quotation', [
+            'document' => $quotation->load(['customer', 'items', 'taxes']),
+            'title' => 'Quotation',
+            'settings' => \App\Models\BusinessSetting::query()->first() ?? new \App\Models\BusinessSetting(['name' => 'Test', 'currency' => 'AED']),
+        ])->render();
+
+        preg_match('/<td class="df-head">Delivery<\/td>.*?<\/tr>/s', $html, $deliveryRow);
+        preg_match('/<td class="df-head">Fix<\/td>.*?<\/tr>/s', $html, $fixRow);
+        $this->assertNotEmpty($deliveryRow);
+        $this->assertNotEmpty($fixRow);
+        // delivery_required = true: Yes is checked, No is not.
+        $this->assertStringContainsString('Yes <span class="df-box">✓</span>', $deliveryRow[0]);
+        $this->assertStringContainsString('No <span class="df-box"></span>', $deliveryRow[0]);
+        // fixing_required = false: No is checked, Yes is not.
+        $this->assertStringContainsString('Yes <span class="df-box"></span>', $fixRow[0]);
+        $this->assertStringContainsString('No <span class="df-box">✓</span>', $fixRow[0]);
+        // The box sits right before the signature block, not up near the customer details.
+        $this->assertGreaterThan(strpos($html, 'Terms and Conditions') ?: 0, strpos($html, 'delivery-fixing-box'));
+        $this->assertLessThan(strpos($html, 'signature-block'), strpos($html, 'delivery-fixing-box'));
+
+        $update = $this->actingAs($admin)->putJson("/api/admin/quotations/{$quotation->id}", [
+            'customer_id' => $customer->id,
+            'delivery_required' => false,
+            'fixing_required' => true,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ]);
+
+        $update->assertOk()
+            ->assertJsonPath('data.delivery_required', false)
+            ->assertJsonPath('data.fixing_required', true);
+    }
+
     public function test_admin_can_create_unit_and_attach_it_to_product_and_quotation(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

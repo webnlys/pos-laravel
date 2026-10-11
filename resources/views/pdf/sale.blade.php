@@ -15,6 +15,7 @@
         .info-table { width: 100%; border-collapse: collapse; }
         .info-table td { border: none; padding: 0 0 6px 0; }
         .line-company { font-size: 19px; font-weight: bold; white-space: nowrap; padding-bottom: 4px !important; }
+        .line-company-ar { font-size: 15px; font-weight: bold; direction: rtl; text-align: right; padding-bottom: 4px !important; }
         .line-tagline { color: #555; padding-bottom: 10px !important; }
         .line-barcode { text-align: right; padding-bottom: 6px !important; }
         .table-body { width: 100%; border-collapse: collapse; }
@@ -26,6 +27,11 @@
         .col-tax { width: 12%; }
         .col-amount { width: 12%; }
         .right { text-align: right; }
+        .delivery-fixing-box { width: 70mm; table-layout: fixed; border-collapse: collapse; margin: 16px 0; }
+        .delivery-fixing-box td { border: 1px solid #000; padding: 4px 8px; font-weight: bold; font-size: 11px; white-space: nowrap; }
+        .delivery-fixing-box .df-head { width: 26mm; }
+        .delivery-fixing-box .df-opt { width: 22mm; }
+        .df-box { display: inline-block; width: 9px; height: 9px; border: 1px solid #000; margin-left: 4px; text-align: center; line-height: 9px; font-size: 9px; vertical-align: middle; }
         tfoot .grand td { font-weight: bold; }
         h1 { font-size: 20px; margin: 0 0 8px; }
         .terms-footer { color: #555; font-size: 12px; border-top: 1px solid #ccc; padding-top: 6px; }
@@ -62,6 +68,9 @@
             <td class="header-info" style="border:none; border-left: 1px solid #999999; border-right: 1px solid #999999; border-bottom: 1px solid #999999;">
                 <table class="info-table" cellspacing="0" cellpadding="0">
                     <tr><td class="line-company">{{ $settings->name }}</td></tr>
+                    @if($settings->nameArText())
+                        <tr><td class="line-company-ar" dir="rtl">{{ $settings->nameArText() }}</td></tr>
+                    @endif
                     @if($settings->taglineText())
                         <tr><td class="line-tagline">{{ $settings->taglineText() }}</td></tr>
                     @endif
@@ -185,6 +194,26 @@
         </ul>
     </div>
     @endif
+
+    @if($document->include_account_info && $settings->accountInfoText())
+    <div class="terms-footer account-info">
+        <strong>Account Info</strong>
+        <div class="terms-body">{!! nl2br(e($settings->accountInfoText())) !!}</div>
+    </div>
+    @endif
+
+    <table class="delivery-fixing-box" cellspacing="0" cellpadding="0">
+        <tr>
+            <td class="df-head">Delivery</td>
+            <td class="df-opt">Yes <span class="df-box">{{ $document->delivery_required ? '✓' : '' }}</span></td>
+            <td class="df-opt">No <span class="df-box">{{ ! $document->delivery_required ? '✓' : '' }}</span></td>
+        </tr>
+        <tr>
+            <td class="df-head">Fix</td>
+            <td class="df-opt">Yes <span class="df-box">{{ $document->fixing_required ? '✓' : '' }}</span></td>
+            <td class="df-opt">No <span class="df-box">{{ ! $document->fixing_required ? '✓' : '' }}</span></td>
+        </tr>
+    </table>
 
     <div class="signature-block">
         <div class="signature-box">

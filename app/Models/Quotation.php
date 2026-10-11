@@ -25,6 +25,8 @@ class Quotation extends Model
         'status',
         'notes',
         'include_account_info',
+        'delivery_required',
+        'fixing_required',
         'converted_sale_id',
     ];
 
@@ -39,6 +41,8 @@ class Quotation extends Model
             'tax_total' => 'decimal:2',
             'total' => 'decimal:2',
             'include_account_info' => 'boolean',
+            'delivery_required' => 'boolean',
+            'fixing_required' => 'boolean',
         ];
     }
 

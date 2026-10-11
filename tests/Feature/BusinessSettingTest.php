@@ -248,6 +248,51 @@ class BusinessSettingTest extends TestCase
         $this->assertStringNotContainsString('Thank you for your business!', $html);
     }
 
+    public function test_quotation_pdf_shows_arabic_business_name_after_the_main_name_and_renders(): void
+    {
+        BusinessSetting::query()->create([
+            'name' => 'Desert Shop',
+            'name_ar' => 'متجر الصحراء',
+            'currency' => 'AED',
+        ]);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::query()->create(['name' => 'Walk-in']);
+        $product = Product::query()->create([
+            'name' => 'Panel',
+            'sku' => 'PN-AR',
+            'sale_price' => 10,
+            'cost_price' => 5,
+            'stock_qty' => 0,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->postJson('/api/admin/quotations', [
+            'customer_id' => $customer->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 10],
+            ],
+        ])->assertCreated();
+
+        $quotation = Quotation::query()->first();
+        $html = view('pdf.quotation', [
+            'document' => $quotation->load(['customer', 'items', 'taxes']),
+            'title' => 'Quotation',
+            'settings' => BusinessSetting::query()->first(),
+        ])->render();
+
+        $this->assertStringContainsString('متجر الصحراء', $html);
+        $namePos = strpos($html, 'Desert Shop');
+        $arabicPos = strpos($html, 'متجر الصحراء');
+        $this->assertNotFalse($namePos);
+        $this->assertNotFalse($arabicPos);
+        $this->assertGreaterThan($namePos, $arabicPos);
+
+        // Renders through real mpdf (autoScriptToLang/autoLangToFont) without erroring.
+        $pdf = $this->actingAs($admin)->get("/api/admin/quotations/{$quotation->id}/pdf");
+        $pdf->assertOk();
+        $this->assertStringStartsWith('%PDF-', $pdf->getContent());
+    }
+
     public function test_quotation_pdf_html_uses_quotation_terms_at_bottom(): void
     {
         BusinessSetting::query()->create([

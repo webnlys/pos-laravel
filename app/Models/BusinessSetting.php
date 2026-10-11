@@ -9,6 +9,7 @@ class BusinessSetting extends Model
 {
     protected $fillable = [
         'name',
+        'name_ar',
         'logo',
         'signature',
         'email',
@@ -25,6 +26,13 @@ class BusinessSetting extends Model
     public function currencyCode(): string
     {
         return $this->currency ?: (string) config('currencies.default', 'AED');
+    }
+
+    public function nameArText(): ?string
+    {
+        $nameAr = trim((string) $this->name_ar);
+
+        return $nameAr !== '' ? $nameAr : null;
     }
 
     public function taglineText(): ?string

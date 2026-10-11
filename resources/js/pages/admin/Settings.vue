@@ -7,6 +7,11 @@
                     <input v-model="form.name" class="form-control" required>
                 </div>
                 <div class="col-md-6">
+                    <label class="form-label">Business name (Arabic)</label>
+                    <input v-model="form.name_ar" class="form-control" dir="rtl">
+                    <div class="form-text">Optional. Shown under the business name on quotation, invoice, and receipt PDFs.</div>
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Currency</label>
                     <select v-model="form.currency" class="form-select" required>
                         <option v-for="(label, code) in currencyOptions" :key="code" :value="code">
@@ -119,7 +124,7 @@ import PageShell from '../../components/PageShell.vue';
 import { useSettingsStore } from '../../stores/settings';
 
 const settings = useSettingsStore();
-const form = reactive({ name: '', email: '', phone: '', website: '', address: '', currency: 'AED', tagline: '', account_info: '' });
+const form = reactive({ name: '', name_ar: '', email: '', phone: '', website: '', address: '', currency: 'AED', tagline: '', account_info: '' });
 const termLines = ref(['']);
 const quotationTermLines = ref(['']);
 const currencyOptions = ref({ AED: 'UAE Dirham' });
@@ -132,6 +137,7 @@ const error = ref('');
 onMounted(async () => {
     const { data } = await axios.get('/api/admin/settings');
     form.name = data.data.name || '';
+    form.name_ar = data.data.name_ar || '';
     form.email = data.data.email || '';
     form.phone = data.data.phone || '';
     form.website = data.data.website || '';
@@ -198,6 +204,7 @@ async function save() {
     try {
         const payload = new FormData();
         payload.append('name', form.name || '');
+        payload.append('name_ar', form.name_ar || '');
         payload.append('email', form.email || '');
         payload.append('phone', form.phone || '');
         payload.append('website', form.website || '');

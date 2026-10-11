@@ -35,6 +35,9 @@ class SaleService
                 'total' => $totals['total'],
                 'status' => 'unpaid',
                 'notes' => $data['notes'] ?? null,
+                'include_account_info' => (bool) ($data['include_account_info'] ?? false),
+                'delivery_required' => (bool) ($data['delivery_required'] ?? false),
+                'fixing_required' => (bool) ($data['fixing_required'] ?? false),
             ]);
 
             $this->syncLines($sale, $totals['items'], $totals['taxes']);
@@ -65,6 +68,15 @@ class SaleService
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'notes' => $data['notes'] ?? $sale->notes,
+                'include_account_info' => array_key_exists('include_account_info', $data)
+                    ? (bool) $data['include_account_info']
+                    : $sale->include_account_info,
+                'delivery_required' => array_key_exists('delivery_required', $data)
+                    ? (bool) $data['delivery_required']
+                    : $sale->delivery_required,
+                'fixing_required' => array_key_exists('fixing_required', $data)
+                    ? (bool) $data['fixing_required']
+                    : $sale->fixing_required,
             ]);
 
             $sale->items()->delete();

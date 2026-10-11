@@ -12,6 +12,7 @@ class BusinessSettingResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'name_ar' => $this->name_ar,
             'logo' => $this->logo ? asset('storage/'.$this->logo) : null,
             'signature' => $this->signature ? asset('storage/'.$this->signature) : null,
             'email' => $this->email,

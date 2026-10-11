@@ -64,6 +64,8 @@ class PdfService
             'margin_right' => 12,
             'margin_footer' => 8,
             'tempDir' => $tempDir,
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
         ]);
         $mpdf->WriteHTML($html);
 

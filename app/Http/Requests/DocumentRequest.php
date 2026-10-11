@@ -74,6 +74,9 @@ class DocumentRequest extends FormRequest
             $rules['payment.paid_at'] = ['nullable', 'date'];
             $rules['payment.notes'] = ['nullable', 'string'];
             $rules['overall_discount'] = ['nullable', 'numeric', 'min:0'];
+            $rules['include_account_info'] = ['nullable', 'boolean'];
+            $rules['delivery_required'] = ['nullable', 'boolean'];
+            $rules['fixing_required'] = ['nullable', 'boolean'];
         }
 
         if ($this->routeIs('admin.quotations.*')) {
@@ -81,6 +84,8 @@ class DocumentRequest extends FormRequest
             $rules['overall_discount'] = ['nullable', 'numeric', 'min:0'];
             $rules['overall_tax_id'] = ['nullable', 'exists:taxes,id', 'required_if:tax_mode,overall'];
             $rules['include_account_info'] = ['nullable', 'boolean'];
+            $rules['delivery_required'] = ['nullable', 'boolean'];
+            $rules['fixing_required'] = ['nullable', 'boolean'];
         }
 
         return $rules;

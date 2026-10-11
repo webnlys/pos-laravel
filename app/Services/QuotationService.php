@@ -45,6 +45,8 @@ class QuotationService
                 'status' => $data['status'] ?? 'draft',
                 'notes' => $data['notes'] ?? null,
                 'include_account_info' => (bool) ($data['include_account_info'] ?? false),
+                'delivery_required' => (bool) ($data['delivery_required'] ?? false),
+                'fixing_required' => (bool) ($data['fixing_required'] ?? false),
             ]);
 
             $this->syncLines($quotation, $totals['items']);
@@ -88,6 +90,12 @@ class QuotationService
                 'include_account_info' => array_key_exists('include_account_info', $data)
                     ? (bool) $data['include_account_info']
                     : $quotation->include_account_info,
+                'delivery_required' => array_key_exists('delivery_required', $data)
+                    ? (bool) $data['delivery_required']
+                    : $quotation->delivery_required,
+                'fixing_required' => array_key_exists('fixing_required', $data)
+                    ? (bool) $data['fixing_required']
+                    : $quotation->fixing_required,
             ]);
 
             $quotation->items()->delete();

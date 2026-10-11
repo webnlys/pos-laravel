@@ -15,6 +15,7 @@
         .info-table { width: 100%; border-collapse: collapse; }
         .info-table td { border: none; padding: 0 0 6px 0; }
         .line-company { font-size: 19px; font-weight: bold; white-space: nowrap; padding-bottom: 4px !important; }
+        .line-company-ar { font-size: 15px; font-weight: bold; direction: rtl; text-align: right; padding-bottom: 4px !important; }
         .line-tagline { color: #555; padding-bottom: 10px !important; }
         .line-barcode { text-align: right; padding-bottom: 6px !important; }
         .barcode-img { width: 40mm; height: 8mm; }
@@ -42,6 +43,9 @@
             <td class="header-info" style="border:none; border-left: 1px solid #999999; border-right: 1px solid #999999; border-bottom: 1px solid #999999;">
                 <table class="info-table" cellspacing="0" cellpadding="0">
                     <tr><td class="line-company">{{ $settings->name }}</td></tr>
+                    @if($settings->nameArText())
+                        <tr><td class="line-company-ar" dir="rtl">{{ $settings->nameArText() }}</td></tr>
+                    @endif
                     @if($settings->taglineText())
                         <tr><td class="line-tagline">{{ $settings->taglineText() }}</td></tr>
                     @endif
